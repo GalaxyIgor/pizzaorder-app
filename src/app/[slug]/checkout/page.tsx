@@ -166,6 +166,46 @@ export default function CheckoutPage() {
     });
   };
 
+  // Botão principal e avisos: renderizados 2x — rodapé fixo (mobile) e
+  // resumo lateral (desktop) — por isso viram JSX compartilhado.
+  const cta =
+    etapa === 'revisao' ? (
+      <button
+        type="button"
+        onClick={confirmar}
+        disabled={!podeAvancar}
+        className="w-full bg-pomodoro hover:bg-pomodoro-hover disabled:opacity-60 text-white p-4 rounded-lg font-semibold text-sm flex justify-between items-center shadow-lg transition-all active:scale-[0.99]"
+      >
+        <span>{pending ? 'Enviando pedido...' : 'Confirmar pedido'}</span>
+        <span>{formatarPreco(total)}</span>
+      </button>
+    ) : (
+      <button
+        type="button"
+        onClick={avancar}
+        disabled={!podeAvancar}
+        className="w-full bg-pomodoro hover:bg-pomodoro-hover disabled:opacity-60 text-white p-4 rounded-lg font-semibold text-sm shadow-lg transition-all active:scale-[0.99]"
+      >
+        Continuar
+      </button>
+    );
+
+  const avisos = (
+    <>
+      {abaixoDoMinimo && etapa === 'revisao' && (
+        <p className="text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3">
+          O pedido mínimo é {formatarPreco(pizzaria.pedido_minimo!)} (sem contar a entrega).
+          Volte ao cardápio para adicionar mais itens.
+        </p>
+      )}
+      {erro && (
+        <p role="alert" className="text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3">
+          {erro}
+        </p>
+      )}
+    </>
+  );
+
   // ------- sacola vazia -------
   if (items.length === 0) {
     return (
@@ -183,7 +223,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-full sm:max-w-md mx-auto p-4 min-h-screen pb-32">
+    <div className="max-w-full sm:max-w-md md:max-w-3xl mx-auto p-4 min-h-screen pb-32 md:pb-8">
       {/* Cabeçalho */}
       <header className="py-4 flex items-center gap-3">
         {etapaIdx === 0 ? (
@@ -214,7 +254,10 @@ export default function CheckoutPage() {
         ))}
       </div>
 
-      {/* Etapa atual */}
+      {/* md+: duas colunas — etapas à esquerda, resumo fixo à direita */}
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_300px] md:gap-8 md:items-start">
+        <div className="min-w-0">
+          {/* Etapa atual */}
       {etapa === 'modalidade' && (
         <ModalidadeStep pizzaria={pizzaria} value={modalidade} onChange={setModalidade} />
       )}
@@ -272,43 +315,57 @@ export default function CheckoutPage() {
         />
       )}
 
-      {/* Avisos */}
-      {abaixoDoMinimo && etapa === 'revisao' && (
-        <p className="mt-4 text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3">
-          O pedido mínimo é {formatarPreco(pizzaria.pedido_minimo!)} (sem contar a entrega).
-          Volte ao cardápio para adicionar mais itens.
-        </p>
-      )}
-      {erro && (
-        <p role="alert" className="mt-4 text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3">
-          {erro}
-        </p>
-      )}
-
-      {/* Rodapé fixo */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 flex justify-center z-40">
-        <div className="w-full max-w-[900px] sm:max-w-[448px]">
-          {etapa === 'revisao' ? (
-            <button
-              type="button"
-              onClick={confirmar}
-              disabled={!podeAvancar}
-              className="w-full bg-pomodoro hover:bg-pomodoro-hover disabled:opacity-60 text-white p-4 rounded-lg font-semibold text-sm flex justify-between items-center shadow-lg transition-all active:scale-[0.99]"
-            >
-              <span>{pending ? 'Enviando pedido...' : 'Confirmar pedido'}</span>
-              <span>{formatarPreco(total)}</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={avancar}
-              disabled={!podeAvancar}
-              className="w-full bg-pomodoro hover:bg-pomodoro-hover disabled:opacity-60 text-white p-4 rounded-lg font-semibold text-sm shadow-lg transition-all active:scale-[0.99]"
-            >
-              Continuar
-            </button>
-          )}
+          {/* Avisos no fluxo (mobile — o resumo lateral os repete no desktop) */}
+          <div className="mt-4 space-y-3 md:hidden">{avisos}</div>
         </div>
+
+        {/* Resumo lateral (só desktop) */}
+        <aside className="hidden md:block md:sticky md:top-4 bg-white border border-borda-suave rounded-xl p-4 space-y-3">
+          <h2 className="text-xs font-semibold text-creme-muted uppercase tracking-wide">
+            Resumo do pedido
+          </h2>
+          <ul className="space-y-1.5 text-sm max-h-56 overflow-y-auto">
+            {items.map((item) => (
+              <li key={item.id} className="flex justify-between gap-2">
+                <span className="text-carbono truncate">
+                  {item.quantidade}× {item.nome}
+                </span>
+                <span className="text-creme-muted whitespace-nowrap">
+                  {formatarPreco(item.precoUnit * item.quantidade)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="border-t border-borda-suave pt-3 text-sm space-y-1.5">
+            <div className="flex justify-between text-creme-muted">
+              <span>Subtotal</span>
+              <span>{formatarPreco(totalPrice)}</span>
+            </div>
+            {modalidade === 'entrega' && frete?.entrega && (
+              <div className="flex justify-between text-creme-muted">
+                <span>Entrega</span>
+                <span>{taxaEntrega === 0 ? 'Grátis' : formatarPreco(taxaEntrega)}</span>
+              </div>
+            )}
+            {taxaServico > 0 && (
+              <div className="flex justify-between text-creme-muted">
+                <span>Taxa de serviço</span>
+                <span>{formatarPreco(taxaServico)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold text-carbono pt-1.5 border-t border-borda-suave">
+              <span>Total</span>
+              <span>{formatarPreco(total)}</span>
+            </div>
+          </div>
+          {avisos}
+          {cta}
+        </aside>
+      </div>
+
+      {/* Rodapé fixo (só mobile) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 flex justify-center z-40">
+        <div className="w-full max-w-md">{cta}</div>
       </div>
     </div>
   );
