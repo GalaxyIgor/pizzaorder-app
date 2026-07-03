@@ -1,0 +1,14 @@
+# Arquivos de configuração sensíveis
+.env
+.env.*
+*.pem
+
+# Pastas de dependências e build
+node_modules/
+.next/
+dist/
+build/
+
+# Arquivos do próprio Git e logs
+.git/
+*.log

@@ -1,146 +1,166 @@
 // src/mocks/cardapio.ts
 
-import { Pizza, Bebida, MeiaMeia } from '@/src/types/types';
+import type { Produto } from '@/types/cardapio';
+import { menorPreco } from '@/lib/cardapio';
+import type { ComboMeiaMeia } from '@/types/product-list-modal';
 
 // ============================================================
 // PIZZAS
 // ============================================================
 
-export const PIZZAS_TRADICIONAIS: Pizza[] = [
+export const PIZZAS_TRADICIONAIS: Produto[] = [
   {
     id: '1',
     nome: 'Margherita Clássica',
     descricao: 'Molho de tomate artesanal, mozzarella viva, manjericão fresco e azeite extra virgem.',
-    preco: 48.90,
-    categoria: 'Pizza',
-    imagemUrl: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=300',
+    imagem_url: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=300',
+    ordem: 1,
+    categoria_id: 'pizzas-tradicionais',
+    variacoes_produto: [{ id: '1-v1', tamanho: null, preco: 48.90, disponivel: true }],
   },
   {
     id: '2',
     nome: 'Calabrese Di Napoli',
     descricao: 'Molho de tomate, mozzarella, calabresa defumada artesanal e cebola roxa.',
-    preco: 52.00,
-    categoria: 'Pizza',
-    imagemUrl: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?q=80&w=300',
+    imagem_url: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?q=80&w=300',
+    ordem: 2,
+    categoria_id: 'pizzas-tradicionais',
+    variacoes_produto: [{ id: '2-v1', tamanho: null, preco: 52.00, disponivel: true }],
   },
   {
     id: '3',
     nome: 'Quatro Queijos',
     descricao: 'Gorgonzola, parmesão, mozzarella e provolone em perfeita harmonia.',
-    preco: 56.00,
-    categoria: 'Pizza',
-    imagemUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=300',
+    imagem_url: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=300',
+    ordem: 3,
+    categoria_id: 'pizzas-tradicionais',
+    variacoes_produto: [{ id: '3-v1', tamanho: null, preco: 56.00, disponivel: true }],
   },
 ];
 
-export const PIZZAS_ESPECIAIS: Pizza[] = [
+export const PIZZAS_ESPECIAIS: Produto[] = [
   {
     id: '4',
     nome: 'Frango com Catupiry',
     descricao: 'Peito de frango desfiado, catupiry cremoso, milho e bacon.',
-    preco: 54.00,
-    categoria: 'Pizza',
-    imagemUrl: 'https://images.unsplash.com/photo-1589985643564-192f8eca26c9?q=80&w=300',
+    imagem_url: 'https://images.unsplash.com/photo-1589985643564-192f8eca26c9?q=80&w=300',
+    ordem: 1,
+    categoria_id: 'pizzas-especiais',
+    variacoes_produto: [{ id: '4-v1', tamanho: null, preco: 54.00, disponivel: true }],
   },
   {
     id: '5',
     nome: 'Portuguesa',
     descricao: 'Presunto, ovo, cebola, azeitona preta e pimentão.',
-    preco: 50.00,
-    categoria: 'Pizza',
-    imagemUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=300',
+    imagem_url: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=300',
+    ordem: 2,
+    categoria_id: 'pizzas-especiais',
+    variacoes_produto: [{ id: '5-v1', tamanho: null, preco: 50.00, disponivel: true }],
   },
 ];
 
-// Todas as pizzas em um único array — útil para lookups
-export const TODAS_AS_PIZZAS: Pizza[] = [
+// Todas as pizzas em um único array — útil para lookups e para a escolha de sabores no meia-meia
+export const TODAS_AS_PIZZAS: Produto[] = [
   ...PIZZAS_TRADICIONAIS,
   ...PIZZAS_ESPECIAIS,
 ];
 
-const findPizza = (id: string): Pizza => {
+const findPizza = (id: string): Produto => {
   const pizza = TODAS_AS_PIZZAS.find((p) => p.id === id);
   if (!pizza) throw new Error(`Pizza com id "${id}" não encontrada nos mocks.`);
   return pizza;
 };
 
 // ============================================================
-// MEIA MEIA — referencia pizzas reais por ID
+// MEIA MEIA — combos sugeridos na vitrine, montados a partir de pizzas reais
+// (o schema não tem mais um Produto "meia-meia" próprio: o preço é derivado
+// das variações das duas pizzas conforme a estratégia de precificação)
 // ============================================================
 
-export const MEIA_MEIA: MeiaMeia[] = [
-  {
-    id: '6',
-    nome: 'Meia Meia Popular',
-    sabor1: findPizza('1'), // Margherita Clássica
-    sabor2: findPizza('2'), // Calabrese Di Napoli
-    descricao: 'A combinação clássica brasileira: manjericão fresco com calabresa defumada.',
-    preco: 52.00,
-    categoria: 'MeiaMeia',
-    imagemUrl: 'https://images.unsplash.com/photo-1585238341710-4edd9d7daf6f?q=80&w=300',
-  },
-  {
-    id: '7',
-    nome: 'Meia Meia Gourmet',
-    sabor1: findPizza('3'), // Quatro Queijos
-    sabor2: findPizza('4'), // Frango com Catupiry
-    descricao: 'O melhor dos dois mundos: queijos nobres e cremosidade do catupiry.',
-    preco: 58.00,
-    categoria: 'MeiaMeia',
-    imagemUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=300',
-  },
-  {
-    id: '8',
-    nome: 'Meia Meia Executiva',
-    sabor1: findPizza('5'), // Portuguesa
-    sabor2: findPizza('2'), // Calabrese Di Napoli
-    descricao: 'Sabor robusto: ovo, presunto e calabresa defumada.',
-    preco: 54.00,
-    categoria: 'MeiaMeia',
-    imagemUrl: 'https://images.unsplash.com/photo-1571407-4713880c5e41?q=80&w=300',
-  },
+const criarCombo = (
+  id: string,
+  nome: string,
+  descricao: string,
+  produto1: Produto,
+  produto2: Produto,
+  imagem_url: string
+): ComboMeiaMeia => ({
+  id,
+  nome,
+  descricao,
+  produto1,
+  produto2,
+  imagem_url,
+  preco: Math.max(menorPreco(produto1), menorPreco(produto2)),
+});
+
+export const MEIA_MEIA: ComboMeiaMeia[] = [
+  criarCombo(
+    '6',
+    'Meia Meia Popular',
+    'A combinação clássica brasileira: manjericão fresco com calabresa defumada.',
+    findPizza('1'), // Margherita Clássica
+    findPizza('2'), // Calabrese Di Napoli
+    'https://images.unsplash.com/photo-1585238341710-4edd9d7daf6f?q=80&w=300'
+  ),
+  criarCombo(
+    '7',
+    'Meia Meia Gourmet',
+    'O melhor dos dois mundos: queijos nobres e cremosidade do catupiry.',
+    findPizza('3'), // Quatro Queijos
+    findPizza('4'), // Frango com Catupiry
+    'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=300'
+  ),
+  criarCombo(
+    '8',
+    'Meia Meia Executiva',
+    'Sabor robusto: ovo, presunto e calabresa defumada.',
+    findPizza('5'), // Portuguesa
+    findPizza('2'), // Calabrese Di Napoli
+    'https://images.unsplash.com/photo-1571407-4713880c5e41?q=80&w=300'
+  ),
 ];
 
 // ============================================================
 // BEBIDAS
 // ============================================================
 
-export const BEBIDAS: Bebida[] = [
+export const BEBIDAS: Produto[] = [
   {
     id: '9',
     nome: 'Refrigerante Lata',
     descricao: 'Escolha sua marca favorita: Coca, Sprite, Fanta...',
-    preco: 5.00,
-    categoria: 'Bebida',
-    volume: '350ml',
-    imagemUrl: 'https://images.unsplash.com/photo-1554866585-d7180ba00330?q=80&w=300',
+    imagem_url: 'https://images.unsplash.com/photo-1554866585-d7180ba00330?q=80&w=300',
+    ordem: 1,
+    categoria_id: 'bebidas',
+    variacoes_produto: [{ id: '9-v1', tamanho: '350ml', preco: 5.00, disponivel: true }],
   },
   {
     id: '10',
     nome: 'Refrigerante 2L',
     descricao: 'Perfeito para compartilhar com amigos.',
-    preco: 12.00,
-    categoria: 'Bebida',
-    volume: '2L',
-    imagemUrl: 'https://images.unsplash.com/photo-1554866585-d7180ba00330?q=80&w=300',
+    imagem_url: 'https://images.unsplash.com/photo-1554866585-d7180ba00330?q=80&w=300',
+    ordem: 2,
+    categoria_id: 'bebidas',
+    variacoes_produto: [{ id: '10-v1', tamanho: '2L', preco: 12.00, disponivel: true }],
   },
   {
     id: '11',
     nome: 'Suco Natural',
     descricao: 'Suco de laranja fresco, espremido na hora.',
-    preco: 7.50,
-    categoria: 'Bebida',
-    volume: '300ml',
-    imagemUrl: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=300',
+    imagem_url: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=300',
+    ordem: 3,
+    categoria_id: 'bebidas',
+    variacoes_produto: [{ id: '11-v1', tamanho: '300ml', preco: 7.50, disponivel: true }],
   },
   {
     id: '12',
     nome: 'Cerveja Artesanal',
     descricao: 'Seleção de cervejas artesanais locais.',
-    preco: 15.00,
-    categoria: 'Bebida',
-    volume: '600ml',
-    imagemUrl: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?q=80&w=300',
+    imagem_url: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?q=80&w=300',
+    ordem: 4,
+    categoria_id: 'bebidas',
+    variacoes_produto: [{ id: '12-v1', tamanho: '600ml', preco: 15.00, disponivel: true }],
   },
 ];
 
@@ -160,21 +180,20 @@ export interface ItemDestaque {
 type ProdutoCardapioCategoria = 'Pizza' | 'MeiaMeia' | 'Bebida';
 
 export const ITENS_DESTAQUE: ItemDestaque[] = [
-  { id: '2',  badge: 'Top Vendido', ...extrairDestaque(findPizza('2')) },
+  { id: '2',  badge: 'Top Vendido', ...extrairDestaqueProduto(findPizza('2'), 'Pizza') },
   { id: '6',  badge: 'Mais Pedida', ...extrairDestaqueMeiaMeia(MEIA_MEIA[0]) },
-  { id: '4',  badge: 'Favorita',    ...extrairDestaque(findPizza('4')) },
-  { id: '9',  badge: 'Clássico',    ...extrairDestaqueBebida(BEBIDAS[0]) },
+  { id: '4',  badge: 'Favorita',    ...extrairDestaqueProduto(findPizza('4'), 'Pizza') },
+  { id: '9',  badge: 'Clássico',    ...extrairDestaqueProduto(BEBIDAS[0], 'Bebida') },
   { id: '7',  badge: 'Especial',    ...extrairDestaqueMeiaMeia(MEIA_MEIA[1]) },
 ];
 
-function extrairDestaque(pizza: Pizza): Omit<ItemDestaque, 'id' | 'badge'> {
-  return { nome: pizza.nome, preco: pizza.preco, imagemUrl: pizza.imagemUrl ?? '', categoria: 'Pizza' };
+function extrairDestaqueProduto(
+  produto: Produto,
+  categoria: 'Pizza' | 'Bebida'
+): Omit<ItemDestaque, 'id' | 'badge'> {
+  return { nome: produto.nome, preco: menorPreco(produto), imagemUrl: produto.imagem_url ?? '', categoria };
 }
 
-function extrairDestaqueMeiaMeia(mm: MeiaMeia): Omit<ItemDestaque, 'id' | 'badge'> {
-  return { nome: mm.nome, preco: mm.preco, imagemUrl: mm.imagemUrl ?? '', categoria: 'MeiaMeia' };
-}
-
-function extrairDestaqueBebida(bebida: Bebida): Omit<ItemDestaque, 'id' | 'badge'> {
-  return { nome: bebida.nome, preco: bebida.preco, imagemUrl: bebida.imagemUrl ?? '', categoria: 'Bebida' };
+function extrairDestaqueMeiaMeia(combo: ComboMeiaMeia): Omit<ItemDestaque, 'id' | 'badge'> {
+  return { nome: combo.nome, preco: combo.preco, imagemUrl: combo.imagem_url ?? '', categoria: 'MeiaMeia' };
 }
