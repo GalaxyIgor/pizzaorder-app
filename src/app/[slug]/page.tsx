@@ -3,15 +3,15 @@
 
 import { useRef } from 'react';
 import { useParams } from 'next/navigation';
-import { Header } from '@/src/components/cliente/layout/Header';
-import { CarrosselDestaque } from '@/src/components/cliente/CarrosselDestaque';
-import { CategoryNav } from '@/src/components/cliente/nav/CategoryNav';
-import { ProductListModal } from '@/src/components/cliente/modals/ProductListModal';
-import { CartFooter } from '@/src/components/cliente/cart/CartFooter';
-import { ITENS_DESTAQUE } from '@/src/mocks/cardapio';
-import { CategoriaModal, useCardapioModal } from '@/src/types/Usecardapiomodal';
-import { CategoryButtons } from '@/src/components/cliente/buttons/CategoryButtons';
-import { CardapioSections } from '@/src/components/cliente/CardapioSection';
+import { Header } from '@/components/layout/Header';
+import { CarrosselDestaque } from '@/components/cardapio/CarrosselDestaque';
+import { CategoryNav } from '@/components/cardapio/CategoryNav';
+import { ProductListModal } from '@/components/cardapio/modals/ProductListModal';
+import { CartFooter } from '@/components/carrinho/CartFooter';
+import { ITENS_DESTAQUE } from '@/mocks/cardapio';
+import { CategoriaModal, useCardapioModal } from '@/hooks/useCardapioModal';
+import { CategoryButtons } from '@/components/cardapio/CategoryButtons';
+import { CardapioSections } from '@/components/cardapio/CardapioSection';
 
 
 export default function CardapioPage() {

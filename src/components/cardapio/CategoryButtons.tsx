@@ -1,4 +1,4 @@
-// src/components/cliente/CategoryButtons.tsx
+// src/components/cardapio/CategoryButtons.tsx
 
 interface CategoryButtonsProps {
   onOpen: (chave: string) => void;

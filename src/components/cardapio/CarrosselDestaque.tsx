@@ -1,4 +1,4 @@
-// src/components/cliente/CarrosselDestaque.tsx
+// src/components/cardapio/CarrosselDestaque.tsx
 'use client';
 
 import Image from 'next/image';

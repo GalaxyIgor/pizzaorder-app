@@ -1,13 +1,13 @@
 // src/hooks/useCardapioModal.ts
 
 import { useState } from 'react';
-import type { ProdutoCardapio } from '@/src/types/types';
+import type { Produto } from '@/types/cardapio';
 import {
   PIZZAS_TRADICIONAIS,
   PIZZAS_ESPECIAIS,
-  MEIA_MEIA,
+  TODAS_AS_PIZZAS,
   BEBIDAS,
-} from '@/src/mocks/cardapio';
+} from '@/mocks/cardapio';
 
 // ============================================================
 // TIPOS
@@ -19,7 +19,7 @@ export interface EstadoModal {
   aberto: boolean;
   categoria: CategoriaModal | null;
   titulo: string;
-  produtos: ProdutoCardapio[];
+  produtos: Produto[];
 }
 
 // ============================================================
@@ -41,8 +41,8 @@ const CATEGORIAS_MODAL: Record<string, Omit<EstadoModal, 'aberto'>> = {
   },
   'meia-meia': {
     categoria: 'meia-meia',
-    titulo: 'Pizzas Meia Meia',
-    produtos: MEIA_MEIA,
+    titulo: 'Escolha os 2 sabores',
+    produtos: TODAS_AS_PIZZAS,
   },
   'bebidas': {
     categoria: 'bebidas',

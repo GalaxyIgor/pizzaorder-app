@@ -1,4 +1,4 @@
-// src/components/cliente/Header.tsx
+// src/components/cardapio/Header.tsx
 interface HeaderProps {
   slug: string;
 }

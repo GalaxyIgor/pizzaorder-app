@@ -1,15 +1,15 @@
-// src/components/cliente/CardapioSections.tsx
+// src/components/cardapio/CardapioSections.tsx
 
 import type { RefObject } from 'react';
-import { ProductCard } from '@/src/components/cliente/cards/ProductCard';
-import { BebidaCard } from '@/src/components/cliente/cards/BebidaCard';
-import { MeiaMetaCard } from '@/src/components/cliente/cards/MeiaMetaCard';
+import { ProductCard } from '@/components/cardapio/cards/ProductCard';
+import { BebidaCard } from '@/components/cardapio/cards/BebidaCard';
+import { MeiaMetaCard } from '@/components/cardapio/cards/MeiaMetaCard';
 import {
   PIZZAS_TRADICIONAIS,
   PIZZAS_ESPECIAIS,
   MEIA_MEIA,
   BEBIDAS,
-} from '@/src/mocks/cardapio';
+} from '@/mocks/cardapio';
 
 interface CardapioSectionsProps {
   refs: {
@@ -50,8 +50,8 @@ export function CardapioSections({ refs }: CardapioSectionsProps) {
           Meia Meia
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {MEIA_MEIA.map((meiaMeia) => (
-            <MeiaMetaCard key={meiaMeia.id} meiaMeia={meiaMeia} />
+          {MEIA_MEIA.map((combo) => (
+            <MeiaMetaCard key={combo.id} combo={combo} />
           ))}
         </div>
       </section>

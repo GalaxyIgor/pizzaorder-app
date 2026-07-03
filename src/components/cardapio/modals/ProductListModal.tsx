@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import type { ProdutoCardapio } from '@/src/types/types';
-import type { ProductListModalCategory, ProductListModalProps, SelectedFlavors } from '@/src/types/ProductListModal.types';
-import { ProductListModalHeader } from '@/src/components/cliente/modals/ProductListModalHeader';
-import { HalfAndHalfSelector } from '@/src/components/cliente/modals/HalfAndHalfSelector';
-import { ProductOptionCard } from '@/src/components/cliente/modals/ProductOptionCard';
-import { ProductListModalFooter } from '@/src/components/cliente/modals/ProductListModalFooter';
+import type { Produto } from '@/types/cardapio';
+import type { ProductListModalCategory, ProductListModalProps, SelectedFlavors } from '@/types/product-list-modal';
+import { ProductListModalHeader } from '@/components/cardapio/modals/ProductListModalHeader';
+import { HalfAndHalfSelector } from '@/components/cardapio/modals/HalfAndHalfSelector';
+import { ProductOptionCard } from '@/components/cardapio/modals/ProductOptionCard';
+import { ProductListModalFooter } from '@/components/cardapio/modals/ProductListModalFooter';
 
 const FLAVORS_VAZIO: SelectedFlavors = { lado1: null, lado2: null };
 
@@ -27,13 +27,11 @@ export function ProductListModal({ isOpen, onClose, title, category, products }:
     onClose();
   };
 
-  const handleProductSelect = (product: ProdutoCardapio) => {
+  const handleProductSelect = (product: Produto) => {
     if (category !== 'meia-meia') {
       console.log('Adicionando ao carrinho:', product);
       return;
     }
-
-    if (product.categoria !== 'Pizza') return;
 
     if (selectingLado === 1) {
       setErro(null);

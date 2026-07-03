@@ -1,12 +1,13 @@
 import Image from 'next/image';
-import type { ProdutoCardapio } from '@/src/types/types';
-import type { ProductListModalCategory } from '@/src/types/ProductListModal.types';
+import type { Produto } from '@/types/cardapio';
+import { menorPreco } from '@/lib/cardapio';
+import type { ProductListModalCategory } from '@/types/product-list-modal';
 
 interface ProductOptionCardProps {
-  product: ProdutoCardapio;
+  product: Produto;
   category: ProductListModalCategory;
   isSelected: boolean;
-  onSelect: (product: ProdutoCardapio) => void;
+  onSelect: (product: Produto) => void;
   formatarPreco: (preco: number) => string;
 }
 
@@ -29,9 +30,9 @@ export function ProductOptionCard({
       }`}
     >
       <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-massa-bg">
-        {product.imagemUrl ? (
+        {product.imagem_url ? (
           <Image
-            src={product.imagemUrl}
+            src={product.imagem_url}
             alt={product.nome}
             fill
             sizes="96px"
@@ -48,18 +49,12 @@ export function ProductOptionCard({
         <h3 className="font-display font-semibold text-carbono text-lg">{product.nome}</h3>
         <p className="text-sm text-creme-muted mb-2">{product.descricao}</p>
 
-        {product.categoria === 'Bebida' && product.volume && (
-          <p className="text-xs text-ouro font-semibold mb-2">{product.volume}</p>
-        )}
-
-        {product.categoria === 'MeiaMeia' && (
-          <p className="text-xs text-creme-muted mb-2">
-            {product.sabor1.nome} + {product.sabor2.nome}
-          </p>
+        {category === 'bebidas' && product.variacoes_produto[0]?.tamanho && (
+          <p className="text-xs text-ouro font-semibold mb-2">{product.variacoes_produto[0].tamanho}</p>
         )}
 
         <p className="font-display text-lg font-bold text-pomodoro">
-          {formatarPreco(product.preco)}
+          {formatarPreco(menorPreco(product))}
         </p>
       </div>
 

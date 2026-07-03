@@ -1,4 +1,4 @@
-// src/components/cliente/CartFooter.tsx
+// src/components/cardapio/CartFooter.tsx
 export function CartFooter() {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 flex justify-center z-50">

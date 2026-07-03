@@ -1,4 +1,4 @@
-// src/components/cliente/CategoryNav.tsx
+// src/components/cardapio/CategoryNav.tsx
 interface CategoryNavProps {
   categories?: string[];
   onCategoryClick?: (category: string) => void;

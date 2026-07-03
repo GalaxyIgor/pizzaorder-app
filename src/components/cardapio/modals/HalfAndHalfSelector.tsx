@@ -1,4 +1,4 @@
-import type { SelectedFlavors } from '@/src/types/ProductListModal.types';
+import type { SelectedFlavors } from '@/types/product-list-modal';
 
 interface HalfAndHalfSelectorProps {
   selectedFlavors: SelectedFlavors;
