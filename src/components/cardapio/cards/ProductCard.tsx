@@ -1,6 +1,9 @@
 // src/components/cardapio/ProductCard.tsx
+'use client';
+
 import type { Produto } from '@/types/cardapio';
-import { menorPreco } from '@/lib/cardapio';
+import { formatarPreco, menorPreco } from '@/lib/cardapio';
+import { useProdutoDetalhe } from '@/contexts/ProdutoDetalheContext';
 import Image from 'next/image';
 
 interface ProductCardProps {
@@ -8,32 +11,52 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ produto }: ProductCardProps) {
+  const { adicionar } = useProdutoDetalhe();
+
   return (
-    <div className="bg-white border border-borda-suave rounded-lg p-4 flex flex-col md:flex-row items-start gap-4 shadow-xs">
-      <div className="flex flex-col flex-1">
-        <h3 className="font-semibold text-base text-carbono">{produto.nome}</h3>
-        <p className="text-xs text-creme-muted leading-relaxed mt-1 mb-2 line-clamp-2">
-          {produto.descricao}
-        </p>
-        <span className="font-bold text-manjericao mt-auto">
-          {menorPreco(produto).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-        </span>
+    <div className="bg-white border border-borda-suave rounded-lg p-4 flex flex-col gap-3 shadow-xs">
+      {/* Linha: foto (esquerda) + título e valor (direita) */}
+      <div className="flex gap-4 items-center w-full min-w-0">
+        <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-massa-bg">
+          {produto.imagem_url ? (
+            <Image
+              src={produto.imagem_url}
+              alt={produto.nome}
+              fill
+              sizes="96px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
+              <span className="text-3xl">🍕</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display font-semibold text-carbono text-lg leading-tight">
+            {produto.nome}
+          </h3>
+          <span className="block mt-1 font-display text-lg font-bold text-manjericao">
+            {formatarPreco(menorPreco(produto))}
+          </span>
+        </div>
       </div>
 
-      {produto.imagem_url && (
-        <div className="relative w-full h-40 md:w-24 md:h-24 flex-shrink-0">
-          <Image
-            src={produto.imagem_url}
-            alt={produto.nome}
-            fill
-            sizes="(max-width: 768px) 100vw, 96px"
-            className="object-cover rounded-md"
-          />
-          <button className="absolute -bottom-1 -right-1 bg-pomodoro hover:bg-pomodoro-hover text-white w-7 h-7 rounded-full text-lg font-bold flex items-center justify-center shadow-md transition-colors cursor-pointer">
-            +
-          </button>
-        </div>
+      {/* Descrição em largura total, abaixo de tudo */}
+      {produto.descricao && (
+        <p className="text-sm text-creme-muted leading-relaxed">
+          {produto.descricao}
+        </p>
       )}
+
+      <button
+        type="button"
+        onClick={() => adicionar(produto)}
+        className="mt-auto w-full bg-pomodoro hover:bg-pomodoro-hover text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer active:scale-[0.98]"
+      >
+        Adicionar
+      </button>
     </div>
   );
 }

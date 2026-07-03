@@ -1,5 +1,9 @@
 // src/components/cardapio/MeiaMetaCard.tsx
+'use client';
+
 import type { ComboMeiaMeia } from '@/types/product-list-modal';
+import { formatarPreco } from '@/lib/cardapio';
+import { useCart } from '@/contexts/CartContext';
 import Image from 'next/image';
 
 interface MeiaMetaCardProps {
@@ -7,6 +11,8 @@ interface MeiaMetaCardProps {
 }
 
 export function MeiaMetaCard({ combo }: MeiaMetaCardProps) {
+  const { addCombo } = useCart();
+
   return (
     <div className="bg-white border border-borda-suave rounded-lg p-4 flex flex-col gap-4 shadow-xs">
       <div>
@@ -26,12 +32,16 @@ export function MeiaMetaCard({ combo }: MeiaMetaCardProps) {
         </p>
       </div>
 
-      <div className="flex justify-between items-end">
+      <div className="flex justify-between items-center gap-3">
         <span className="font-bold text-manjericao">
-          {combo.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          {formatarPreco(combo.preco)}
         </span>
-        <button className="bg-pomodoro hover:bg-pomodoro-hover text-white w-8 h-8 rounded-full text-lg font-bold flex items-center justify-center shadow-md transition-colors cursor-pointer">
-          +
+        <button
+          type="button"
+          onClick={() => addCombo(combo)}
+          className="bg-pomodoro hover:bg-pomodoro-hover text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer active:scale-[0.98]"
+        >
+          Adicionar
         </button>
       </div>
 

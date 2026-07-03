@@ -18,49 +18,65 @@ export function ProductOptionCard({
   onSelect,
   formatarPreco,
 }: ProductOptionCardProps) {
+  const tamanhoBebida = category === 'bebidas' ? product.variacoes_produto[0]?.tamanho : null;
+
   return (
-    <div
+    <button
+      type="button"
       onClick={() => onSelect(product)}
-      className={`flex gap-4 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+      aria-pressed={isSelected}
+      className={`w-full flex flex-col gap-3 p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
         isSelected
-          ? 'border-ouro bg-ouro/5'
-          : category === 'meia-meia'
-            ? 'border-borda-suave hover:border-ouro/50'
-            : 'border-borda-suave hover:border-ouro'
+          ? 'border-ouro bg-ouro/5 ring-1 ring-ouro'
+          : 'border-borda-suave hover:border-ouro/60 hover:shadow-sm'
       }`}
     >
-      <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-massa-bg">
-        {product.imagem_url ? (
-          <Image
-            src={product.imagem_url}
-            alt={product.nome}
-            fill
-            sizes="96px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
-            <span className="text-2xl">🍕</span>
+      {/* Linha: foto (esquerda) + título e valor (direita) */}
+      <div className="flex gap-4 items-center w-full min-w-0">
+        <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-massa-bg">
+          {product.imagem_url ? (
+            <Image
+              src={product.imagem_url}
+              alt={product.nome}
+              fill
+              sizes="96px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
+              <span className="text-3xl">🍕</span>
+            </div>
+          )}
+          {isSelected && (
+            <div className="absolute top-1 right-1 bg-ouro text-white w-6 h-6 rounded-full flex items-center justify-center text-sm shadow-md">
+              ✓
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display font-semibold text-carbono text-lg leading-tight">
+            {product.nome}
+          </h3>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="font-display text-lg font-bold text-pomodoro">
+              {formatarPreco(menorPreco(product))}
+            </span>
+            {tamanhoBebida && (
+              <span className="bg-ouro/10 text-ouro text-xs font-semibold px-2 py-0.5 rounded-full">
+                {tamanhoBebida}
+              </span>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      <div className="flex-1">
-        <h3 className="font-display font-semibold text-carbono text-lg">{product.nome}</h3>
-        <p className="text-sm text-creme-muted mb-2">{product.descricao}</p>
-
-        {category === 'bebidas' && product.variacoes_produto[0]?.tamanho && (
-          <p className="text-xs text-ouro font-semibold mb-2">{product.variacoes_produto[0].tamanho}</p>
-        )}
-
-        <p className="font-display text-lg font-bold text-pomodoro">
-          {formatarPreco(menorPreco(product))}
+      {/* Descrição em largura total, abaixo de tudo */}
+      {product.descricao && (
+        <p className="text-sm text-creme-muted leading-relaxed">
+          {product.descricao}
         </p>
-      </div>
-
-      {isSelected && (
-        <div className="flex items-center justify-center text-ouro text-2xl">✓</div>
       )}
-    </div>
+    </button>
   );
 }

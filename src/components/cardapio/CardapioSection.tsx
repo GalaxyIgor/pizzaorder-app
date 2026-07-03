@@ -1,71 +1,74 @@
 // src/components/cardapio/CardapioSections.tsx
+'use client';
 
-import type { RefObject } from 'react';
 import { ProductCard } from '@/components/cardapio/cards/ProductCard';
 import { BebidaCard } from '@/components/cardapio/cards/BebidaCard';
 import { MeiaMetaCard } from '@/components/cardapio/cards/MeiaMetaCard';
-import {
-  PIZZAS_TRADICIONAIS,
-  PIZZAS_ESPECIAIS,
-  MEIA_MEIA,
-  BEBIDAS,
-} from '@/mocks/cardapio';
+import { useCardapio } from '@/contexts/CardapioContext';
+import { produtosPorCategoria, precoMeiaMeia } from '@/lib/cardapio';
 
-interface CardapioSectionsProps {
-  refs: {
-    pizzasTradicionais: RefObject<HTMLDivElement | null>;
-    pizzasEspeciais: RefObject<HTMLDivElement | null>;
-    meiaMeia: RefObject<HTMLDivElement | null>;
-    bebidas: RefObject<HTMLDivElement | null>;
-  };
-}
+// Id da âncora de scroll de uma categoria (usado pela navegação de categorias).
+export const sectionId = (categoriaId: string) => `categoria-${categoriaId}`;
 
-export function CardapioSections({ refs }: CardapioSectionsProps) {
+export function CardapioSections() {
+  const { categorias, produtos, combos, pizzaria } = useCardapio();
+
+  const categoriasVisiveis = categorias.filter((c) => c.tipo !== 'meia_meia');
+  const temMeiaMeia = categorias.some((c) => c.tipo === 'meia_meia');
+
   return (
     <main className="mt-8">
-      <section ref={refs.pizzasTradicionais} className="mb-12">
-        <h2 className="font-display text-2xl font-bold mb-4 text-carbono">
-          Pizzas Tradicionais
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {PIZZAS_TRADICIONAIS.map((pizza) => (
-            <ProductCard key={pizza.id} produto={pizza} />
-          ))}
-        </div>
-      </section>
+      {categoriasVisiveis.map((categoria) => {
+        const produtosDaCategoria = produtosPorCategoria(produtos, categoria.id);
+        if (produtosDaCategoria.length === 0) return null;
 
-      <section ref={refs.pizzasEspeciais} className="mb-12">
-        <h2 className="font-display text-2xl font-bold mb-4 text-carbono">
-          Pizzas Especiais
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {PIZZAS_ESPECIAIS.map((pizza) => (
-            <ProductCard key={pizza.id} produto={pizza} />
-          ))}
-        </div>
-      </section>
+        return (
+          <section key={categoria.id} id={sectionId(categoria.id)} className="mb-12 scroll-mt-24">
+            <h2 className="font-display text-2xl font-bold mb-4 text-carbono">
+              {categoria.nome}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {produtosDaCategoria.map((produto) =>
+                categoria.tipo === 'bebida' ? (
+                  <BebidaCard key={produto.id} bebida={produto} />
+                ) : (
+                  <ProductCard key={produto.id} produto={produto} />
+                )
+              )}
+            </div>
+          </section>
+        );
+      })}
 
-      <section ref={refs.meiaMeia} className="mb-12">
-        <h2 className="font-display text-2xl font-bold mb-4 text-carbono">
-          Meia Meia
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {MEIA_MEIA.map((combo) => (
-            <MeiaMetaCard key={combo.id} combo={combo} />
-          ))}
-        </div>
-      </section>
+      {temMeiaMeia && combos.length > 0 && (
+        <section id={sectionId('meia-meia')} className="mb-8 scroll-mt-24">
+          <h2 className="font-display text-2xl font-bold mb-4 text-carbono">
+            Meia Meia
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {combos.map((combo) => {
+              const produto1 = produtos.find((p) => p.id === combo.produto1_id);
+              const produto2 = produtos.find((p) => p.id === combo.produto2_id);
+              if (!produto1 || !produto2) return null;
 
-      <section ref={refs.bebidas} className="mb-8">
-        <h2 className="font-display text-2xl font-bold mb-4 text-carbono">
-          Bebidas
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {BEBIDAS.map((bebida) => (
-            <BebidaCard key={bebida.id} bebida={bebida} />
-          ))}
-        </div>
-      </section>
+              return (
+                <MeiaMetaCard
+                  key={combo.id}
+                  combo={{
+                    id: combo.id,
+                    nome: combo.nome,
+                    descricao: combo.descricao ?? '',
+                    produto1,
+                    produto2,
+                    imagem_url: combo.imagem_url,
+                    preco: precoMeiaMeia(produto1, produto2, pizzaria.config_meia_meia),
+                  }}
+                />
+              );
+            })}
+          </div>
+        </section>
+      )}
     </main>
   );
 }

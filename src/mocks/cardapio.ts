@@ -1,6 +1,6 @@
 // src/mocks/cardapio.ts
 
-import type { Produto } from '@/types/cardapio';
+import type { GrupoAdicional, Produto } from '@/types/cardapio';
 import { menorPreco } from '@/lib/cardapio';
 import type { ComboMeiaMeia } from '@/types/product-list-modal';
 
@@ -16,7 +16,11 @@ export const PIZZAS_TRADICIONAIS: Produto[] = [
     imagem_url: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=300',
     ordem: 1,
     categoria_id: 'pizzas-tradicionais',
-    variacoes_produto: [{ id: '1-v1', tamanho: null, preco: 48.90, disponivel: true }],
+    variacoes_produto: [
+      { id: '1-P', tamanho: 'P', preco: 42.90, disponivel: true },
+      { id: '1-M', tamanho: 'M', preco: 48.90, disponivel: true },
+      { id: '1-G', tamanho: 'G', preco: 58.90, disponivel: true },
+    ],
   },
   {
     id: '2',
@@ -25,7 +29,11 @@ export const PIZZAS_TRADICIONAIS: Produto[] = [
     imagem_url: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?q=80&w=300',
     ordem: 2,
     categoria_id: 'pizzas-tradicionais',
-    variacoes_produto: [{ id: '2-v1', tamanho: null, preco: 52.00, disponivel: true }],
+    variacoes_produto: [
+      { id: '2-P', tamanho: 'P', preco: 46.00, disponivel: true },
+      { id: '2-M', tamanho: 'M', preco: 52.00, disponivel: true },
+      { id: '2-G', tamanho: 'G', preco: 62.00, disponivel: true },
+    ],
   },
   {
     id: '3',
@@ -34,7 +42,11 @@ export const PIZZAS_TRADICIONAIS: Produto[] = [
     imagem_url: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=300',
     ordem: 3,
     categoria_id: 'pizzas-tradicionais',
-    variacoes_produto: [{ id: '3-v1', tamanho: null, preco: 56.00, disponivel: true }],
+    variacoes_produto: [
+      { id: '3-P', tamanho: 'P', preco: 50.00, disponivel: true },
+      { id: '3-M', tamanho: 'M', preco: 56.00, disponivel: true },
+      { id: '3-G', tamanho: 'G', preco: 66.00, disponivel: true },
+    ],
   },
 ];
 
@@ -46,7 +58,11 @@ export const PIZZAS_ESPECIAIS: Produto[] = [
     imagem_url: 'https://images.unsplash.com/photo-1589985643564-192f8eca26c9?q=80&w=300',
     ordem: 1,
     categoria_id: 'pizzas-especiais',
-    variacoes_produto: [{ id: '4-v1', tamanho: null, preco: 54.00, disponivel: true }],
+    variacoes_produto: [
+      { id: '4-P', tamanho: 'P', preco: 48.00, disponivel: true },
+      { id: '4-M', tamanho: 'M', preco: 54.00, disponivel: true },
+      { id: '4-G', tamanho: 'G', preco: 64.00, disponivel: true },
+    ],
   },
   {
     id: '5',
@@ -55,7 +71,11 @@ export const PIZZAS_ESPECIAIS: Produto[] = [
     imagem_url: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=300',
     ordem: 2,
     categoria_id: 'pizzas-especiais',
-    variacoes_produto: [{ id: '5-v1', tamanho: null, preco: 50.00, disponivel: true }],
+    variacoes_produto: [
+      { id: '5-P', tamanho: 'P', preco: 44.00, disponivel: true },
+      { id: '5-M', tamanho: 'M', preco: 50.00, disponivel: true },
+      { id: '5-G', tamanho: 'G', preco: 60.00, disponivel: true },
+    ],
   },
 ];
 
@@ -122,6 +142,104 @@ export const MEIA_MEIA: ComboMeiaMeia[] = [
 ];
 
 // ============================================================
+// GRUPOS DE ADICIONAIS (borda + adicionais por categoria de pizza)
+// ============================================================
+
+const criarGruposDaCategoria = (categoriaId: string): GrupoAdicional[] => [
+  {
+    id: `${categoriaId}-borda`,
+    categoria_id: categoriaId,
+    nome: 'Borda recheada',
+    tipo: 'unica',
+    obrigatorio: true,
+    min_selecoes: 1,
+    max_selecoes: 1,
+    ordem: 1,
+    opcoes_adicionais: [
+      {
+        id: `${categoriaId}-borda-nenhuma`,
+        nome: 'Sem borda',
+        preco_base: 0,
+        variar_por_tamanho: false,
+        disponivel: true,
+        ordem: 1,
+        precos_opcao_por_tamanho: [],
+      },
+      {
+        id: `${categoriaId}-borda-catupiry`,
+        nome: 'Catupiry',
+        preco_base: 8,
+        variar_por_tamanho: true,
+        disponivel: true,
+        ordem: 2,
+        precos_opcao_por_tamanho: [
+          { tamanho: 'P', preco: 6 },
+          { tamanho: 'M', preco: 8 },
+          { tamanho: 'G', preco: 10 },
+        ],
+      },
+      {
+        id: `${categoriaId}-borda-cheddar`,
+        nome: 'Cheddar',
+        preco_base: 8,
+        variar_por_tamanho: true,
+        disponivel: true,
+        ordem: 3,
+        precos_opcao_por_tamanho: [
+          { tamanho: 'P', preco: 6 },
+          { tamanho: 'M', preco: 8 },
+          { tamanho: 'G', preco: 10 },
+        ],
+      },
+    ],
+  },
+  {
+    id: `${categoriaId}-adicionais`,
+    categoria_id: categoriaId,
+    nome: 'Adicionais',
+    tipo: 'multipla',
+    obrigatorio: false,
+    min_selecoes: 0,
+    max_selecoes: null,
+    ordem: 2,
+    opcoes_adicionais: [
+      {
+        id: `${categoriaId}-add-bacon`,
+        nome: 'Bacon',
+        preco_base: 6,
+        variar_por_tamanho: false,
+        disponivel: true,
+        ordem: 1,
+        precos_opcao_por_tamanho: [],
+      },
+      {
+        id: `${categoriaId}-add-queijo`,
+        nome: 'Extra queijo',
+        preco_base: 5,
+        variar_por_tamanho: false,
+        disponivel: true,
+        ordem: 2,
+        precos_opcao_por_tamanho: [],
+      },
+      {
+        id: `${categoriaId}-add-catupiry`,
+        nome: 'Catupiry extra',
+        preco_base: 5,
+        variar_por_tamanho: false,
+        disponivel: true,
+        ordem: 3,
+        precos_opcao_por_tamanho: [],
+      },
+    ],
+  },
+];
+
+export const GRUPOS_ADICIONAIS: GrupoAdicional[] = [
+  ...criarGruposDaCategoria('pizzas-tradicionais'),
+  ...criarGruposDaCategoria('pizzas-especiais'),
+];
+
+// ============================================================
 // BEBIDAS
 // ============================================================
 
@@ -167,6 +285,22 @@ export const BEBIDAS: Produto[] = [
 // ============================================================
 // DESTAQUES — referencia IDs reais, sem duplicar dados
 // ============================================================
+
+/** Resultado de resolver um destaque (achatado) de volta ao dado real, para adicionar ao carrinho. */
+export type DestaqueResolvido =
+  | { tipo: 'produto'; produto: Produto }
+  | { tipo: 'combo'; combo: ComboMeiaMeia };
+
+/** Resolve o id de um destaque para o Produto (pizza/bebida) ou combo meia-meia correspondente. */
+export function resolverDestaque(id: string): DestaqueResolvido | null {
+  const produto = [...TODAS_AS_PIZZAS, ...BEBIDAS].find((p) => p.id === id);
+  if (produto) return { tipo: 'produto', produto };
+
+  const combo = MEIA_MEIA.find((c) => c.id === id);
+  if (combo) return { tipo: 'combo', combo };
+
+  return null;
+}
 
 export interface ItemDestaque {
   id: string;

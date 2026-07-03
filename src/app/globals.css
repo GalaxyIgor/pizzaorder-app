@@ -14,9 +14,9 @@
   --color-creme-muted: #7A726E;
   --color-borda-suave: #E8E3DF;
 
-  /* Fontes */
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-sans: 'Inter', sans-serif;
+  /* Fontes (carregadas via next/font no layout) */
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-inter), sans-serif;
 }
 
 body {

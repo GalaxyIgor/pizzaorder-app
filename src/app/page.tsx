@@ -9,8 +9,7 @@ export default function HomePage() {
         <p className="text-sm text-creme-muted mb-4">Página de exemplo — use uma rota com <em>slug</em> para ver o cardápio.</p>
 
         <div className="space-y-2">
-          <Link href="/minha-pizzaria" className="block w-full text-center bg-pomodoro text-white py-2 rounded-md">Abrir /minha-pizzaria</Link>
-          <Link href="/outra-pizzaria" className="block w-full text-center border border-borda-suave py-2 rounded-md text-carbono">Abrir /outra-pizzaria</Link>
+          <Link href="/pizzaria-teste" className="block w-full text-center bg-pomodoro text-white py-2 rounded-md">Abrir /pizzaria-teste</Link>
         </div>
       </div>
     </main>

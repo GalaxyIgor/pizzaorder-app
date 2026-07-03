@@ -2,6 +2,7 @@
 'use client';
 
 import Image from 'next/image';
+import { formatarPreco } from '@/lib/cardapio';
 
 export interface DestaqueProduto {
   id: string;
@@ -14,9 +15,10 @@ export interface DestaqueProduto {
 
 interface CarrosselDestaqueProps {
   produtos: DestaqueProduto[];
+  onAdd: (id: string) => void;
 }
 
-export function CarrosselDestaque({ produtos }: CarrosselDestaqueProps) {
+export function CarrosselDestaque({ produtos, onAdd }: CarrosselDestaqueProps) {
   return (
     <div className="mb-8">
       <h2 className="font-display text-2xl font-bold mb-4 text-carbono">
@@ -50,14 +52,16 @@ export function CarrosselDestaque({ produtos }: CarrosselDestaqueProps) {
               <h3 className="font-semibold text-sm text-carbono truncate">
                 {produto.nome}
               </h3>
-              <div className="flex justify-between items-center mt-2">
-                <span className="font-bold text-manjericao">
-                  {produto.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </span>
-                <button className="bg-pomodoro hover:bg-pomodoro-hover text-white w-6 h-6 rounded-full text-sm font-bold flex items-center justify-center transition-colors">
-                  +
-                </button>
-              </div>
+              <span className="block mt-1 font-bold text-manjericao">
+                {formatarPreco(produto.preco)}
+              </span>
+              <button
+                type="button"
+                onClick={() => onAdd(produto.id)}
+                className="mt-2 w-full bg-pomodoro hover:bg-pomodoro-hover text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer active:scale-[0.98]"
+              >
+                Adicionar
+              </button>
             </div>
           </div>
         ))}

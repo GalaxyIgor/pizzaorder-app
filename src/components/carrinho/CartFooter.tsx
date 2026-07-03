@@ -1,11 +1,34 @@
-// src/components/cardapio/CartFooter.tsx
+'use client';
+
+// src/components/carrinho/CartFooter.tsx
+//
+// Barra fixa inferior: aparece só quando há itens e abre a sacola (CartDrawer).
+
+import { useState } from 'react';
+import { useCart } from '@/contexts/CartContext';
+import { formatarPreco } from '@/lib/cardapio';
+import { CartDrawer } from '@/components/carrinho/CartDrawer';
+
 export function CartFooter() {
+  const { totalItems, totalPrice } = useCart();
+  const [aberto, setAberto] = useState(false);
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 flex justify-center z-50">
-      <button className="bg-pomodoro hover:bg-pomodoro-hover text-white w-full max-w-[900px] sm:max-w-[568px] p-4 rounded-lg font-semibold text-sm flex justify-between items-center shadow-lg transition-all active:scale-[0.99] cursor-pointer">
-        <span>Ver sacola (1 item)</span>
-        <span>R$ 48,90</span>
-      </button>
-    </div>
+    <>
+      {totalItems > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 flex justify-center z-40">
+          <button
+            type="button"
+            onClick={() => setAberto(true)}
+            className="bg-pomodoro hover:bg-pomodoro-hover text-white w-full max-w-[900px] sm:max-w-[568px] p-4 rounded-lg font-semibold text-sm flex justify-between items-center shadow-lg transition-all active:scale-[0.99] cursor-pointer"
+          >
+            <span>Ver sacola ({totalItems} {totalItems === 1 ? 'item' : 'itens'})</span>
+            <span>{formatarPreco(totalPrice)}</span>
+          </button>
+        </div>
+      )}
+
+      <CartDrawer isOpen={aberto} onClose={() => setAberto(false)} />
+    </>
   );
 }

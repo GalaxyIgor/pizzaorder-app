@@ -12,7 +12,7 @@ export async function GET(
   const { data: pizzaria, error: errPizzaria } = await supabase
     .from('pizzarias')
     .select(
-      'id, nome, slug, logo_url, cor_primaria, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_retirada, aceita_entrega'
+      'id, nome, slug, logo_url, cor_primaria, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_retirada, aceita_entrega, aceita_local'
     )
     .eq('slug', slug)
     .eq('ativo', true)
@@ -88,11 +88,24 @@ export async function GET(
     return NextResponse.json({ error: 'Erro ao buscar adicionais' }, { status: 500 });
   }
 
+  // 6. Combos sugeridos de meia-meia (vitrine "Meia Meia")
+  const { data: combos, error: errCombos } = await supabase
+    .from('combos_meia_meia')
+    .select('id, nome, descricao, imagem_url, ordem, produto1_id, produto2_id')
+    .eq('pizzaria_id', pizzaria.id)
+    .eq('ativo', true)
+    .order('ordem');
+
+  if (errCombos) {
+    return NextResponse.json({ error: 'Erro ao buscar combos' }, { status: 500 });
+  }
+
   return NextResponse.json({
     pizzaria,
     categorias,
     produtos,
     destaques,
     gruposAdicionais,
+    combos,
   });
 }

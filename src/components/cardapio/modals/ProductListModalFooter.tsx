@@ -5,7 +5,7 @@ interface ProductListModalFooterProps {
 
 export function ProductListModalFooter({ onClose, onAddToCart }: ProductListModalFooterProps) {
   return (
-    <div className="sticky bottom-0 bg-white border-t border-borda-suave p-4 flex gap-3">
+    <div className="sticky bottom-0 z-20 bg-white border-t border-borda-suave p-4 flex gap-3">
       <button
         onClick={onClose}
         className="flex-1 px-4 py-3 rounded-lg border-2 border-borda-suave text-carbono font-semibold hover:bg-massa-bg transition-colors"

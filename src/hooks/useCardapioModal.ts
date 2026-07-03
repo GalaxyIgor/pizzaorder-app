@@ -2,12 +2,8 @@
 
 import { useState } from 'react';
 import type { Produto } from '@/types/cardapio';
-import {
-  PIZZAS_TRADICIONAIS,
-  PIZZAS_ESPECIAIS,
-  TODAS_AS_PIZZAS,
-  BEBIDAS,
-} from '@/mocks/cardapio';
+import { useCardapio } from '@/contexts/CardapioContext';
+import { produtosPorTipo } from '@/lib/cardapio';
 
 // ============================================================
 // TIPOS
@@ -33,33 +29,36 @@ const MODAL_FECHADO: EstadoModal = {
   produtos: [],
 };
 
-const CATEGORIAS_MODAL: Record<string, Omit<EstadoModal, 'aberto'>> = {
-  'pizzas-completas': {
-    categoria: 'pizzas',
-    titulo: 'Pizzas Completas',
-    produtos: [...PIZZAS_TRADICIONAIS, ...PIZZAS_ESPECIAIS],
-  },
-  'meia-meia': {
-    categoria: 'meia-meia',
-    titulo: 'Escolha os 2 sabores',
-    produtos: TODAS_AS_PIZZAS,
-  },
-  'bebidas': {
-    categoria: 'bebidas',
-    titulo: 'Bebidas',
-    produtos: BEBIDAS,
-  },
-};
-
 // ============================================================
 // HOOK
 // ============================================================
 
 export function useCardapioModal() {
+  const { produtos, categorias } = useCardapio();
   const [modal, setModal] = useState<EstadoModal>(MODAL_FECHADO);
 
+  const todasAsPizzas = produtosPorTipo(produtos, categorias, 'pizza');
+
+  const categoriasModal: Record<string, Omit<EstadoModal, 'aberto'>> = {
+    'pizzas-completas': {
+      categoria: 'pizzas',
+      titulo: 'Pizzas Completas',
+      produtos: todasAsPizzas,
+    },
+    'meia-meia': {
+      categoria: 'meia-meia',
+      titulo: 'Escolha os 2 sabores',
+      produtos: todasAsPizzas,
+    },
+    'bebidas': {
+      categoria: 'bebidas',
+      titulo: 'Bebidas',
+      produtos: produtosPorTipo(produtos, categorias, 'bebida'),
+    },
+  };
+
   const abrirModal = (chave: string) => {
-    const config = CATEGORIAS_MODAL[chave];
+    const config = categoriasModal[chave];
     if (!config) return;
     setModal({ aberto: true, ...config });
   };

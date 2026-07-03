@@ -65,6 +65,7 @@ export interface Pizzaria {
   pedido_minimo: number | null;
   aceita_retirada: boolean;
   aceita_entrega: boolean;
+  aceita_local: boolean;
 }
 
 // ============================================================
@@ -116,6 +117,20 @@ export interface Destaque {
 }
 
 // ============================================================
+// COMBO SUGERIDO (meia-meia curado pelo tenant — vitrine "Meia Meia")
+// ============================================================
+
+export interface ComboSugestao {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  imagem_url: string | null;
+  ordem: number;
+  produto1_id: string;
+  produto2_id: string;
+}
+
+// ============================================================
 // GRUPOS DE ADICIONAIS (borda, opcionais — configurável por tenant)
 // ============================================================
 
@@ -158,4 +173,5 @@ export interface CardapioResponse {
   produtos: Produto[];
   destaques: Destaque[];
   gruposAdicionais: GrupoAdicional[];
+  combos: ComboSugestao[];
 }
