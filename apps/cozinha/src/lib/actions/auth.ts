@@ -7,7 +7,7 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { vinculosDoUsuario } from '@/lib/staff';
+import type { VinculoStaff } from '@/lib/staff';
 
 export interface AuthState {
   erro?: string;
@@ -24,7 +24,13 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   if (error) return { erro: 'Email ou senha inválidos.' };
 
   // Conta sem vínculo de staff não entra (evita cliente logar na cozinha).
-  const vinculos = await vinculosDoUsuario();
+  // Importante: mesma instância do client — a sessão recém-criada vive nela,
+  // um client novo neste mesmo request pode não enxergar o cookie ainda.
+  const { data } = await supabase
+    .from('staff_pizzaria')
+    .select('pizzaria_id, papel, pizzarias (nome, slug)')
+    .order('criado_em');
+  const vinculos = (data ?? []) as unknown as VinculoStaff[];
   if (vinculos.length === 0) {
     await supabase.auth.signOut();
     return { erro: 'Esta conta não tem acesso à cozinha. Fale com a gestão da pizzaria.' };
