@@ -11,7 +11,6 @@ import {
   useEffect,
   useMemo,
   useReducer,
-  useRef,
   type ReactNode,
 } from 'react';
 import type { ConfigMeiaMeia, Produto, Tamanho, VariacaoProduto } from '@/types/cardapio';
@@ -31,38 +30,55 @@ type CartAction =
   | { type: 'CLEAR' }
   | { type: 'HYDRATE'; items: CartItem[] };
 
-function cartReducer(state: CartItem[], action: CartAction): CartItem[] {
+// `hidratado` vive no estado (não num ref): o efeito de persistência só grava
+// depois que o HYDRATE foi APLICADO. Com ref, no StrictMode (efeitos 2x em dev)
+// a gravação rodava entre as duas hidratações e zerava o carrinho salvo.
+interface CartState {
+  items: CartItem[];
+  hidratado: boolean;
+}
+
+function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'HYDRATE':
-      return action.items;
+      return { items: action.items, hidratado: true };
 
     case 'ADD': {
-      const existente = state.find((i) => i.id === action.item.id);
+      const existente = state.items.find((i) => i.id === action.item.id);
       if (existente) {
-        return state.map((i) =>
-          i.id === action.item.id
-            ? { ...i, quantidade: i.quantidade + action.item.quantidade }
-            : i
-        );
+        return {
+          ...state,
+          items: state.items.map((i) =>
+            i.id === action.item.id
+              ? { ...i, quantidade: i.quantidade + action.item.quantidade }
+              : i
+          ),
+        };
       }
-      return [...state, action.item];
+      return { ...state, items: [...state.items, action.item] };
     }
 
     case 'INCREMENT':
-      return state.map((i) =>
-        i.id === action.id ? { ...i, quantidade: i.quantidade + 1 } : i
-      );
+      return {
+        ...state,
+        items: state.items.map((i) =>
+          i.id === action.id ? { ...i, quantidade: i.quantidade + 1 } : i
+        ),
+      };
 
     case 'DECREMENT':
-      return state
-        .map((i) => (i.id === action.id ? { ...i, quantidade: i.quantidade - 1 } : i))
-        .filter((i) => i.quantidade > 0);
+      return {
+        ...state,
+        items: state.items
+          .map((i) => (i.id === action.id ? { ...i, quantidade: i.quantidade - 1 } : i))
+          .filter((i) => i.quantidade > 0),
+      };
 
     case 'REMOVE':
-      return state.filter((i) => i.id !== action.id);
+      return { ...state, items: state.items.filter((i) => i.id !== action.id) };
 
     case 'CLEAR':
-      return [];
+      return { ...state, items: [] };
 
     default:
       return state;
@@ -124,30 +140,33 @@ export function CartProvider({
   configMeiaMeia: ConfigMeiaMeia;
   children: ReactNode;
 }) {
-  const [items, dispatch] = useReducer(cartReducer, []);
+  const [{ items, hidratado }, dispatch] = useReducer(cartReducer, {
+    items: [],
+    hidratado: false,
+  });
   const storageKey = `carrinho:${slug}`;
-  const hydrated = useRef(false);
 
   // Carrega do localStorage na montagem (client only, evita mismatch de hidratação)
   useEffect(() => {
+    let salvos: CartItem[] = [];
     try {
       const bruto = localStorage.getItem(storageKey);
-      if (bruto) dispatch({ type: 'HYDRATE', items: JSON.parse(bruto) as CartItem[] });
+      if (bruto) salvos = JSON.parse(bruto) as CartItem[];
     } catch {
       // localStorage indisponível ou JSON corrompido — segue com carrinho vazio
     }
-    hydrated.current = true;
+    dispatch({ type: 'HYDRATE', items: salvos });
   }, [storageKey]);
 
-  // Persiste a cada mudança (só depois da hidratação, pra não sobrescrever o salvo)
+  // Persiste a cada mudança (só depois da hidratação APLICADA, pra não sobrescrever o salvo)
   useEffect(() => {
-    if (!hydrated.current) return;
+    if (!hidratado) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(items));
     } catch {
       // ignora falha de escrita (ex.: modo privado / quota)
     }
-  }, [items, storageKey]);
+  }, [items, hidratado, storageKey]);
 
   const addProduto = (produto: Produto, variacao?: VariacaoProduto) => {
     const v = variacao ?? variacaoDisponivel(produto);
