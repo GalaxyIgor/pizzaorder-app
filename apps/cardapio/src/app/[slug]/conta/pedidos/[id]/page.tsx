@@ -33,7 +33,7 @@ export default async function PedidoPage({
   const { data: pedido } = await supabase
     .from('pedidos')
     .select(
-      'id, numero, status, modalidade, total, criado_em, nome_cliente, telefone_cliente, endereco_entrega, observacao, subtotal, taxa_entrega, taxa_servico, forma_pagamento, metodo_pagamento_local, status_pagamento'
+      'id, numero, status, modalidade, total, criado_em, previsao_pronto_em, nome_cliente, telefone_cliente, endereco_entrega, observacao, subtotal, taxa_entrega, taxa_servico, forma_pagamento, metodo_pagamento_local, status_pagamento'
     )
     .eq('id', id)
     .single();
@@ -73,6 +73,20 @@ export default async function PedidoPage({
         </div>
         <StatusBadge status={detalhe.status} />
       </header>
+
+      {/* Previsão informada pela cozinha ao aceitar o pedido */}
+      {detalhe.previsao_pronto_em &&
+        (detalhe.status === 'em_preparo' || detalhe.status === 'pronto') && (
+          <p className="mb-3 text-sm text-carbono bg-ouro/15 border border-ouro/40 rounded-lg p-3">
+            Previsão de ficar pronto:{' '}
+            <span className="font-semibold">
+              {new Date(detalhe.previsao_pronto_em).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+          </p>
+        )}
 
       {/* Itens */}
       <section className="bg-white border border-borda-suave rounded-xl p-4 space-y-3">

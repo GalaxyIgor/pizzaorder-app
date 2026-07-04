@@ -6,11 +6,10 @@ import type { StatusPedido } from '@/types/pedido';
 import { STATUS_LABEL } from '@/types/pedido';
 
 const COR: Record<StatusPedido, string> = {
-  recebido: 'bg-ouro/15 text-carbono',
+  pendente: 'bg-ouro/15 text-carbono',
   em_preparo: 'bg-ouro/25 text-carbono',
   pronto: 'bg-manjericao/10 text-manjericao',
   saiu_para_entrega: 'bg-manjericao/10 text-manjericao',
-  entregue: 'bg-manjericao/15 text-manjericao',
   concluido: 'bg-manjericao/15 text-manjericao',
   cancelado: 'bg-pomodoro/10 text-pomodoro',
 };

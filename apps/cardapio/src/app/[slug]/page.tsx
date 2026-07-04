@@ -4,6 +4,7 @@
 // Providers (cardápio/carrinho/detalhe) vivem no layout do [slug] — ver providers.tsx.
 
 import { Header } from '@/components/layout/Header';
+import { AvisoPausado } from '@/components/layout/AvisoPausado';
 import { CarrosselDestaque, type DestaqueProduto } from '@/components/cardapio/CarrosselDestaque';
 import { CategoryNav } from '@/components/cardapio/CategoryNav';
 import { ProductListModal } from '@/components/cardapio/modals/ProductListModal';
@@ -65,6 +66,7 @@ function CardapioConteudo() {
   return (
     <div className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto p-4 sm:p-6 min-h-screen pb-24">
       <Header />
+      <AvisoPausado />
       <CarrosselDestaque produtos={itensDestaque} onAdd={handleAddDestaque} />
       <CategoryButtons onOpen={abrirModal} />
       <CategoryNav categories={categoryNavNomes} onCategoryClick={handleCategoryClick} />

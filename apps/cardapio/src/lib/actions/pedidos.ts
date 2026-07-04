@@ -89,13 +89,17 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
   const { data: pizzaria, error: errPizzaria } = await admin
     .from('pizzarias')
     .select(
-      'id, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_entrega, aceita_retirada, aceita_local'
+      'id, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_entrega, aceita_retirada, aceita_local, pedidos_pausados'
     )
     .eq('slug', input.slug)
     .eq('ativo', true)
     .single();
 
   if (errPizzaria || !pizzaria) return { erro: 'Pizzaria não encontrada.' };
+
+  if (pizzaria.pedidos_pausados) {
+    return { erro: 'A pizzaria pausou novos pedidos no momento. Tente novamente mais tarde.' };
+  }
 
   const aceita: Record<string, boolean> = {
     entrega: pizzaria.aceita_entrega,

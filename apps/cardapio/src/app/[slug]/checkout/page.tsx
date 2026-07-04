@@ -118,6 +118,8 @@ export default function CheckoutPage() {
 
   const abaixoDoMinimo =
     pizzaria.pedido_minimo != null && totalPrice < pizzaria.pedido_minimo;
+  // Aviso em todas as etapas; o bloqueio de verdade é server-side (criarPedido).
+  const lojaPausada = pizzaria.pedidos_pausados;
 
   const podeAvancar = (() => {
     switch (etapa) {
@@ -135,7 +137,7 @@ export default function CheckoutPage() {
       case 'pagamento':
         return metodoPagamento !== null;
       case 'revisao':
-        return !abaixoDoMinimo && !pending;
+        return !abaixoDoMinimo && !lojaPausada && !pending;
     }
   })();
 
@@ -195,6 +197,11 @@ export default function CheckoutPage() {
 
   const avisos = (
     <>
+      {lojaPausada && (
+        <p className="text-sm text-carbono bg-ouro/15 border border-ouro/40 rounded-lg p-3">
+          {pizzaria.nome} está sem aceitar pedidos no momento. Tente novamente mais tarde.
+        </p>
+      )}
       {abaixoDoMinimo && etapa === 'revisao' && (
         <p className="text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3">
           O pedido mínimo é {formatarPreco(pizzaria.pedido_minimo!)} (sem contar a entrega).

@@ -66,6 +66,8 @@ export interface Pizzaria {
   aceita_retirada: boolean;
   aceita_entrega: boolean;
   aceita_local: boolean;
+  /** Cozinha pausou novos pedidos (o cardápio avisa e o checkout bloqueia). */
+  pedidos_pausados: boolean;
 }
 
 // ============================================================

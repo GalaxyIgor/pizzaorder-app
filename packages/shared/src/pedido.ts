@@ -8,13 +8,15 @@ import type { CartItem, CartItemAdicional, CartItemSabor } from './carrinho';
 
 export type Modalidade = 'entrega' | 'retirada' | 'local';
 
-// ATENÇÃO: vocabulário precisa ser validado com o app da cozinha (ver plano).
+// Vocabulário com aceite explícito (decidido em 2026-07-04, supabase/cozinha.sql):
+//   pendente -> em_preparo (cozinha aceita, com previsão) -> pronto
+//     -> saiu_para_entrega (só entrega) -> concluido
+//   cancelado: recusa da cozinha ou cancelamento, antes de concluido.
 export type StatusPedido =
-  | 'recebido'
+  | 'pendente'
   | 'em_preparo'
   | 'pronto'
   | 'saiu_para_entrega'
-  | 'entregue'
   | 'concluido'
   | 'cancelado';
 
@@ -68,6 +70,8 @@ export interface PedidoResumo {
 }
 
 export interface PedidoDetalhe extends PedidoResumo {
+  /** Previsão de ficar pronto (gravada quando a cozinha aceita). */
+  previsao_pronto_em: string | null;
   nome_cliente: string;
   telefone_cliente: string;
   endereco_entrega: EnderecoEntrega | null;
@@ -103,13 +107,26 @@ export const MODALIDADE_LABEL: Record<Modalidade, string> = {
 };
 
 export const STATUS_LABEL: Record<StatusPedido, string> = {
-  recebido: 'Recebido',
+  pendente: 'Aguardando confirmação',
   em_preparo: 'Em preparo',
   pronto: 'Pronto',
   saiu_para_entrega: 'Saiu para entrega',
-  entregue: 'Entregue',
   concluido: 'Concluído',
   cancelado: 'Cancelado',
+};
+
+/**
+ * Máquina de estados do pedido — única fonte das transições permitidas
+ * (a server action da cozinha valida contra ela).
+ * `saiu_para_entrega` só vale para modalidade `entrega` (validação extra na action).
+ */
+export const TRANSICOES_STATUS: Record<StatusPedido, StatusPedido[]> = {
+  pendente: ['em_preparo', 'cancelado'],
+  em_preparo: ['pronto', 'cancelado'],
+  pronto: ['saiu_para_entrega', 'concluido', 'cancelado'],
+  saiu_para_entrega: ['concluido', 'cancelado'],
+  concluido: [],
+  cancelado: [],
 };
 
 export const METODO_PAGAMENTO_LABEL: Record<MetodoPagamentoLocal, string> = {
