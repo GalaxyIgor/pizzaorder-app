@@ -79,3 +79,21 @@ export async function atualizarStatusPedido(
   revalidatePath(`/${input.slug}`);
   return {};
 }
+
+/** Liga/desliga a pausa de novos pedidos (o cardápio avisa e o criarPedido recusa). */
+export async function pausarLoja(slug: string, pausado: boolean): Promise<AcaoPedidoResult> {
+  const { pizzaria } = await exigirStaff(slug);
+
+  const { error } = await admin
+    .from('pizzarias')
+    .update({ pedidos_pausados: pausado })
+    .eq('id', pizzaria.id);
+
+  if (error) {
+    console.error('[pausarLoja]', error.code, error.message);
+    return { erro: 'Não foi possível atualizar a pausa. Tente novamente.' };
+  }
+
+  revalidatePath(`/${slug}`);
+  return {};
+}

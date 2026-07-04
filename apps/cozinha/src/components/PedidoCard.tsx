@@ -62,12 +62,22 @@ export function PedidoCard({ slug, pedido, agora }: Props) {
 
   return (
     <article className="bg-white border border-borda-suave rounded-xl p-3 space-y-2.5 shadow-xs">
-      {/* topo: número + tempo + modalidade */}
+      {/* topo: número + comanda + tempo */}
       <header className="flex items-baseline justify-between gap-2">
         <p className="font-display text-lg font-bold text-carbono">#{pedido.numero}</p>
-        <p className="text-xs text-creme-muted whitespace-nowrap">
-          {tempoDecorrido(pedido.criado_em, agora)}
-        </p>
+        <span className="flex items-baseline gap-2">
+          <a
+            href={`/${slug}/pedidos/${pedido.id}/comanda`}
+            target="_blank"
+            rel="noopener"
+            className="text-xs font-semibold text-creme-muted hover:text-carbono underline"
+          >
+            Comanda
+          </a>
+          <p className="text-xs text-creme-muted whitespace-nowrap">
+            {tempoDecorrido(pedido.criado_em, agora)}
+          </p>
+        </span>
       </header>
       <p className="text-xs font-semibold text-carbono bg-borda-suave/60 rounded-full px-2.5 py-1 inline-block">
         {MODALIDADE_LABEL[pedido.modalidade]}

@@ -25,3 +25,16 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+/* Impressão da comanda: só o conteúdo dela, sem botões nem fundo */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .comanda {
+    width: auto;
+  }
+}

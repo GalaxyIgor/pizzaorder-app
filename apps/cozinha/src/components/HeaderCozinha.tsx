@@ -5,6 +5,7 @@
 import Link from 'next/link';
 import { signOut } from '@/lib/actions/auth';
 import type { PizzariaCozinha } from '@/lib/staff';
+import { PausarLojaToggle } from '@/components/PausarLojaToggle';
 
 export function HeaderCozinha({ pizzaria }: { pizzaria: PizzariaCozinha }) {
   return (
@@ -19,6 +20,7 @@ export function HeaderCozinha({ pizzaria }: { pizzaria: PizzariaCozinha }) {
         <p className="text-xs text-creme-muted">Cozinha</p>
       </div>
 
+      <PausarLojaToggle slug={pizzaria.slug} pausado={pizzaria.pedidos_pausados} />
       <Link
         href={`/${pizzaria.slug}/historico`}
         className="text-sm font-semibold text-carbono border-2 border-borda-suave rounded-lg px-3 py-2 hover:border-pomodoro hover:text-pomodoro transition-colors"
