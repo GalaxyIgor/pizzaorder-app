@@ -1,0 +1,27 @@
+/* src/app/globals.css — mesma identidade do cardápio, com utilitários da cozinha */
+@import "tailwindcss";
+
+@theme {
+  /* Identidade Italiana */
+  --color-pomodoro: #A61C1C;
+  --color-pomodoro-hover: #821414;
+  --color-manjericao: #125430;
+  --color-ouro: #F2A922;
+
+  /* Planos de fundo e textos */
+  --color-massa-bg: #FDFBF7;
+  --color-carbono: #2B2523;
+  --color-creme-muted: #7A726E;
+  --color-borda-suave: #E8E3DF;
+
+  /* Fontes (carregadas via next/font no layout) */
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-inter), sans-serif;
+}
+
+body {
+  background-color: var(--color-massa-bg);
+  color: var(--color-carbono);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
