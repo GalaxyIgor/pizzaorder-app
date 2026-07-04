@@ -57,7 +57,7 @@ export function CookieConsent() {
     <div
       role="dialog"
       aria-label="Aviso de cookies"
-      className="fixed bottom-0 inset-x-0 sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-lg z-50 bg-white border-t sm:border border-borda-suave sm:rounded-xl shadow-lg p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4 space-y-3"
+      className="fixed bottom-0 inset-x-0 sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-lg z-40 bg-white border-t sm:border border-borda-suave sm:rounded-xl shadow-lg p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4 space-y-3"
     >
       <p className="text-sm text-carbono leading-relaxed">
         🍪 Usamos cookies essenciais para manter seu login e seu pedido
