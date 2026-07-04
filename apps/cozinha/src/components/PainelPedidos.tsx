@@ -12,20 +12,51 @@
 // Som: gerado com WebAudio (sem asset). Autoplay exige gesto do usuário,
 // então o overlay "Iniciar turno" desbloqueia o áudio; sem ele, o alerta
 // visual (badge/título da aba) continua funcionando.
+//
+// Arrastar: segurar um card (~250ms) e soltar na próxima coluna avança o
+// status (pointer events — mouse e toque, sem lib). Só transições da máquina
+// de estados: Novos→Em preparo abre o diálogo de previsão; Em preparo→Prontos
+// marca pronto. Os botões continuam existindo como caminho alternativo.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { atualizarStatusPedido } from '@/lib/actions/pedidos';
+import type { StatusPedido } from '@pizzaorder/shared';
 import type { PedidoCozinha } from '@/types/cozinha';
 import { PedidoCard } from '@/components/PedidoCard';
+import { AceitarDialog } from '@/components/AceitarDialog';
 
 const FALLBACK_REFRESH_MS = 45_000;
 const TITULO_PADRAO = 'PizzaOrder Cozinha';
+const SEGURAR_MS = 250;
+const TOLERANCIA_SCROLL_PX = 12;
+
+type ColunaAlvo = 'pendente' | 'em_preparo' | 'prontos';
+
+interface DragState {
+  pedido: PedidoCozinha;
+  x: number;
+  y: number;
+  alvo: ColunaAlvo | null;
+}
 
 interface Props {
   slug: string;
   pizzariaId: string;
   pedidosIniciais: PedidoCozinha[];
+}
+
+function colunaDoStatus(status: StatusPedido): ColunaAlvo {
+  if (status === 'pendente') return 'pendente';
+  if (status === 'em_preparo') return 'em_preparo';
+  return 'prontos';
+}
+
+function colunaEm(x: number, y: number): ColunaAlvo | null {
+  const el = document.elementFromPoint(x, y);
+  const col = el?.closest('[data-coluna]') as HTMLElement | null;
+  return (col?.dataset.coluna as ColunaAlvo | undefined) ?? null;
 }
 
 export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
@@ -36,6 +67,13 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
   const [turnoIniciado, setTurnoIniciado] = useState(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const pendentesAnterioresRef = useRef<Set<string> | null>(null);
+
+  // ------- arrastar e soltar -------
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const [aceitarDrop, setAceitarDrop] = useState<PedidoCozinha | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+  const avisoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [pendingDrop, startDrop] = useTransition();
 
   const pedidos = pedidosIniciais;
   const novos = pedidos.filter((p) => p.status === 'pendente');
@@ -132,36 +170,206 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
     setTurnoIniciado(true);
   };
 
+  // ------- lógica do soltar -------
+  const avisar = (msg: string) => {
+    setAviso(msg);
+    if (avisoTimerRef.current) clearTimeout(avisoTimerRef.current);
+    avisoTimerRef.current = setTimeout(() => setAviso(null), 3500);
+  };
+
+  const executar = (
+    pedido: PedidoCozinha,
+    novoStatus: StatusPedido,
+    extras?: { minutosEstimados?: number }
+  ) => {
+    startDrop(async () => {
+      const r = await atualizarStatusPedido({
+        slug,
+        pedidoId: pedido.id,
+        novoStatus,
+        ...extras,
+      });
+      if (r.erro) avisar(r.erro);
+      else setAceitarDrop(null);
+    });
+  };
+
+  const soltar = (pedido: PedidoCozinha, alvo: ColunaAlvo | null) => {
+    if (!alvo || alvo === colunaDoStatus(pedido.status)) return;
+
+    if (pedido.status === 'pendente' && alvo === 'em_preparo') {
+      setAceitarDrop(pedido); // aceite exige a previsão em minutos
+      return;
+    }
+    if (pedido.status === 'em_preparo' && alvo === 'prontos') {
+      executar(pedido, 'pronto');
+      return;
+    }
+    if (pedido.status === 'pendente' && alvo === 'prontos') {
+      avisar('Aceite o pedido primeiro — arraste para "Em preparo".');
+      return;
+    }
+    avisar('O pedido só anda para a frente. Para desfazer, use "Cancelar".');
+  };
+
+  // ------- segurar e arrastar (pointer events, mouse + toque) -------
+  const aoSegurar = (e: React.PointerEvent, pedido: PedidoCozinha) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // botões/links/campos dentro do card continuam clicáveis normalmente
+    if ((e.target as HTMLElement).closest('button, a, input, textarea')) return;
+
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    const pos = { x: x0, y: y0 };
+    let ativo = false;
+
+    const bloquearScroll = (ev: TouchEvent) => {
+      if (ativo) ev.preventDefault();
+    };
+
+    const limpar = () => {
+      clearTimeout(timer);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', limpar);
+      window.removeEventListener('touchmove', bloquearScroll);
+      setDrag(null);
+    };
+
+    const timer = setTimeout(() => {
+      ativo = true;
+      setDrag({ pedido, x: pos.x, y: pos.y, alvo: colunaEm(pos.x, pos.y) });
+    }, SEGURAR_MS);
+
+    const move = (ev: PointerEvent) => {
+      pos.x = ev.clientX;
+      pos.y = ev.clientY;
+      if (!ativo) {
+        // mexeu antes de "segurar": é scroll/clique, não arrasto
+        if (Math.hypot(ev.clientX - x0, ev.clientY - y0) > TOLERANCIA_SCROLL_PX) limpar();
+        return;
+      }
+      setDrag({ pedido, x: ev.clientX, y: ev.clientY, alvo: colunaEm(ev.clientX, ev.clientY) });
+    };
+
+    const up = () => {
+      if (ativo) {
+        soltar(pedido, colunaEm(pos.x, pos.y));
+        // engole o click fantasma que dispara após soltar sobre um botão
+        window.addEventListener(
+          'click',
+          (ev) => {
+            ev.stopPropagation();
+            ev.preventDefault();
+          },
+          { capture: true, once: true }
+        );
+      }
+      limpar();
+    };
+
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', limpar);
+    window.addEventListener('touchmove', bloquearScroll, { passive: false });
+  };
+
+  // enquanto arrasta, qual coluna é destino válido deste pedido?
+  const conviteValido = (coluna: ColunaAlvo): boolean => {
+    if (!drag) return false;
+    if (drag.pedido.status === 'pendente') return coluna === 'em_preparo';
+    if (drag.pedido.status === 'em_preparo') return coluna === 'prontos';
+    return false;
+  };
+
+  const renderCards = (lista: PedidoCozinha[]) =>
+    lista.map((p) => (
+      <div
+        key={p.id}
+        onPointerDown={(e) => aoSegurar(e, p)}
+        style={{ touchAction: 'pan-y', userSelect: drag ? 'none' : undefined }}
+        className={`${drag?.pedido.id === p.id ? 'opacity-40' : ''} cursor-grab active:cursor-grabbing`}
+      >
+        <PedidoCard slug={slug} pedido={p} agora={agora} />
+      </div>
+    ));
+
   return (
     <div className="space-y-4">
       {/* barra de status do turno / som */}
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-creme-muted hidden md:block">
+          Dica: segure e arraste um pedido para a próxima coluna.
+        </p>
         <button
           type="button"
           onClick={() => (somAtivo ? setSomAtivo(false) : iniciarTurno())}
-          className="text-sm font-semibold text-carbono border-2 border-borda-suave rounded-lg px-3 py-2 hover:border-manjericao transition-colors"
+          className="ml-auto text-sm font-semibold text-carbono border-2 border-borda-suave rounded-lg px-3 py-2 hover:border-manjericao transition-colors"
         >
           {somAtivo ? '🔔 Som ligado' : '🔕 Som desligado'}
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-        <Coluna titulo="Novos" qtd={novos.length} destaque={novos.length > 0}>
-          {novos.map((p) => (
-            <PedidoCard key={p.id} slug={slug} pedido={p} agora={agora} />
-          ))}
+        <Coluna
+          titulo="Novos"
+          coluna="pendente"
+          qtd={novos.length}
+          destaque={novos.length > 0}
+          convite={conviteValido('pendente')}
+          sobre={drag?.alvo === 'pendente' && conviteValido('pendente')}
+        >
+          {renderCards(novos)}
         </Coluna>
-        <Coluna titulo="Em preparo" qtd={emPreparo.length}>
-          {emPreparo.map((p) => (
-            <PedidoCard key={p.id} slug={slug} pedido={p} agora={agora} />
-          ))}
+        <Coluna
+          titulo="Em preparo"
+          coluna="em_preparo"
+          qtd={emPreparo.length}
+          convite={conviteValido('em_preparo')}
+          sobre={drag?.alvo === 'em_preparo' && conviteValido('em_preparo')}
+        >
+          {renderCards(emPreparo)}
         </Coluna>
-        <Coluna titulo="Prontos & em rota" qtd={prontos.length}>
-          {prontos.map((p) => (
-            <PedidoCard key={p.id} slug={slug} pedido={p} agora={agora} />
-          ))}
+        <Coluna
+          titulo="Prontos & em rota"
+          coluna="prontos"
+          qtd={prontos.length}
+          convite={conviteValido('prontos')}
+          sobre={drag?.alvo === 'prontos' && conviteValido('prontos')}
+        >
+          {renderCards(prontos)}
         </Coluna>
       </div>
+
+      {/* fantasma que segue o dedo/mouse */}
+      {drag && (
+        <div
+          aria-hidden="true"
+          className="fixed z-[70] pointer-events-none -translate-x-1/2 -translate-y-1/2"
+          style={{ left: drag.x, top: drag.y }}
+        >
+          <div className="bg-white border-2 border-manjericao rounded-xl px-4 py-2 shadow-xl font-display font-bold text-carbono">
+            #{drag.pedido.numero}
+          </div>
+        </div>
+      )}
+
+      {/* aviso de movimento inválido / erro da action */}
+      {aviso && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] bg-carbono text-white text-sm rounded-lg px-4 py-3 shadow-xl">
+          {aviso}
+        </div>
+      )}
+
+      {/* aceite via arrasto: mesma exigência de previsão do botão */}
+      {aceitarDrop && (
+        <AceitarDialog
+          numero={aceitarDrop.numero}
+          pending={pendingDrop}
+          onConfirmar={(minutos) => executar(aceitarDrop, 'em_preparo', { minutosEstimados: minutos })}
+          onFechar={() => setAceitarDrop(null)}
+        />
+      )}
 
       {/* overlay de início de turno: gesto que desbloqueia o áudio */}
       {!turnoIniciado && (
@@ -217,21 +425,33 @@ function tocarAlerta(ctx: AudioContext | null) {
 
 function Coluna({
   titulo,
+  coluna,
   qtd,
   destaque = false,
+  convite = false,
+  sobre = false,
   children,
 }: {
   titulo: string;
+  coluna: ColunaAlvo;
   qtd: number;
   destaque?: boolean;
+  /** é destino válido do pedido sendo arrastado */
+  convite?: boolean;
+  /** o arrasto está em cima desta coluna agora */
+  sobre?: boolean;
   children: React.ReactNode;
 }) {
+  const borda = sobre
+    ? 'border-manjericao bg-manjericao/10'
+    : convite
+      ? 'border-manjericao/50 border-dashed bg-manjericao/5'
+      : destaque
+        ? 'border-pomodoro/60 bg-pomodoro/5'
+        : 'border-borda-suave bg-white/60';
+
   return (
-    <section
-      className={`rounded-xl border-2 p-3 space-y-3 min-h-32 ${
-        destaque ? 'border-pomodoro/60 bg-pomodoro/5' : 'border-borda-suave bg-white/60'
-      }`}
-    >
+    <section data-coluna={coluna} className={`rounded-xl border-2 p-3 space-y-3 min-h-32 transition-colors ${borda}`}>
       <h2 className="flex items-center justify-between text-sm font-bold text-carbono uppercase tracking-wide">
         {titulo}
         <span
