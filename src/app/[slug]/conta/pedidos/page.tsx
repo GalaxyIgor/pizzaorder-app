@@ -41,7 +41,7 @@ export default async function MeusPedidosPage({
   const lista = (pedidos ?? []) as PedidoResumo[];
 
   return (
-    <div className="max-w-full sm:max-w-md mx-auto p-4 min-h-screen">
+    <div className="max-w-full sm:max-w-md md:max-w-2xl mx-auto p-4 sm:p-6 min-h-screen">
       <header className="py-4 flex items-center gap-3">
         <Link href={`/${slug}`} aria-label="Voltar ao cardápio" className="text-creme-muted hover:text-carbono text-xl">
           ←

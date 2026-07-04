@@ -223,7 +223,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-full sm:max-w-md md:max-w-3xl mx-auto p-4 min-h-screen pb-32 md:pb-8">
+    <div className="max-w-full sm:max-w-md md:max-w-3xl lg:max-w-4xl mx-auto p-4 sm:p-6 min-h-screen pb-32 md:pb-8">
       {/* Cabeçalho */}
       <header className="py-4 flex items-center gap-3">
         {etapaIdx === 0 ? (
@@ -255,7 +255,7 @@ export default function CheckoutPage() {
       </div>
 
       {/* md+: duas colunas — etapas à esquerda, resumo fixo à direita */}
-      <div className="md:grid md:grid-cols-[minmax(0,1fr)_300px] md:gap-8 md:items-start">
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_300px] lg:grid-cols-[minmax(0,1fr)_340px] md:gap-8 md:items-start">
         <div className="min-w-0">
           {/* Etapa atual */}
       {etapa === 'modalidade' && (
@@ -364,7 +364,7 @@ export default function CheckoutPage() {
       </div>
 
       {/* Rodapé fixo (só mobile) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 flex justify-center z-40">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-center z-40">
         <div className="w-full max-w-md">{cta}</div>
       </div>
     </div>

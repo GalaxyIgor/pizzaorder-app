@@ -105,8 +105,8 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
   const rotuloPreco = (preco: number) => (preco > 0 ? `+ ${formatarPreco(preco)}` : 'Grátis');
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-lg max-w-lg w-full max-h-[92dvh] sm:max-h-[85dvh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 z-20 bg-white border-b border-borda-suave p-4 flex justify-between items-center">
           <h2 className="font-display text-xl font-bold text-carbono">{produto.nome}</h2>
@@ -249,7 +249,7 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 z-20 bg-white border-t border-borda-suave p-4 space-y-2">
+        <div className="sticky bottom-0 z-20 bg-white border-t border-borda-suave p-4 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-2">
           {erro && <p className="text-pomodoro text-sm text-center">{erro}</p>}
           <button
             type="button"

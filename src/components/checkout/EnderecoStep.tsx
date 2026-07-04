@@ -55,8 +55,8 @@ export function EnderecoStep({
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_6.5rem] sm:grid-cols-3 gap-3">
+        <div className="sm:col-span-2">
           <label htmlFor="rua" className="block text-sm font-medium text-carbono mb-1">Rua *</label>
           <input id="rua" type="text" required value={endereco.rua} onChange={(e) => onChange('rua', e.target.value)} className={inputClass} />
         </div>

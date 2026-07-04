@@ -107,7 +107,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto p-4 min-h-screen pb-12">
+    <div className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto p-4 sm:p-6 min-h-screen pb-12">
       <header className="py-6 border-b border-borda-suave">
         <h1 className="font-display text-2xl sm:text-3xl font-bold text-pomodoro">
           Pizza Order

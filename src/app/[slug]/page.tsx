@@ -63,7 +63,7 @@ function CardapioConteudo() {
   };
 
   return (
-    <div className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto p-4 min-h-screen pb-24">
+    <div className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto p-4 sm:p-6 min-h-screen pb-24">
       <Header />
       <CarrosselDestaque produtos={itensDestaque} onAdd={handleAddDestaque} />
       <CategoryButtons onOpen={abrirModal} />

@@ -34,7 +34,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
 
       {/* painel */}
-      <div className="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[85vh] flex flex-col shadow-xl">
+      <div className="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[85dvh] flex flex-col shadow-xl">
         <header className="flex items-center justify-between p-4 border-b border-borda-suave">
           <h2 className="font-display text-xl font-bold text-carbono">
             Sua sacola{totalItems > 0 && <span className="text-creme-muted font-normal text-base"> ({totalItems})</span>}
@@ -172,7 +172,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               })}
             </ul>
 
-            <footer className="border-t border-borda-suave p-4 space-y-3">
+            <footer className="border-t border-borda-suave p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4 space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-carbono font-medium">Total</span>
                 <span className="font-display text-xl font-bold text-carbono">

@@ -25,11 +25,11 @@ export function CarrosselDestaque({ produtos, onAdd }: CarrosselDestaqueProps) {
         Mais Popular e Pedido
       </h2>
 
-      <div className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:none]">
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory [scrollbar-width:none]">
         {produtos.map((produto) => (
           <div
             key={produto.id}
-            className="flex-shrink-0 w-48 bg-white border border-borda-suave rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            className="flex-shrink-0 snap-start w-40 sm:w-48 bg-white border border-borda-suave rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
           >
             {produto.imagemUrl && (
               <div className="relative w-full h-32">

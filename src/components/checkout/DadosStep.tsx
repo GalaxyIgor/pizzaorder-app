@@ -23,14 +23,16 @@ export function DadosStep({ nome, telefone, email, onNomeChange, onTelefoneChang
         A pizzaria usa esses dados para falar com você sobre o pedido.
       </p>
 
-      <div>
-        <label htmlFor="nome" className="block text-sm font-medium text-carbono mb-1">Nome *</label>
-        <input id="nome" type="text" required autoComplete="name" value={nome} onChange={(e) => onNomeChange(e.target.value)} className={inputClass} />
-      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
+        <div>
+          <label htmlFor="nome" className="block text-sm font-medium text-carbono mb-1">Nome *</label>
+          <input id="nome" type="text" required autoComplete="name" value={nome} onChange={(e) => onNomeChange(e.target.value)} className={inputClass} />
+        </div>
 
-      <div>
-        <label htmlFor="telefone" className="block text-sm font-medium text-carbono mb-1">Telefone (WhatsApp) *</label>
-        <input id="telefone" type="tel" required autoComplete="tel" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => onTelefoneChange(e.target.value)} className={inputClass} />
+        <div>
+          <label htmlFor="telefone" className="block text-sm font-medium text-carbono mb-1">Telefone (WhatsApp) *</label>
+          <input id="telefone" type="tel" required autoComplete="tel" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => onTelefoneChange(e.target.value)} className={inputClass} />
+        </div>
       </div>
 
       <div>

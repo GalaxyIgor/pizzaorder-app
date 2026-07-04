@@ -16,11 +16,11 @@ export function CartFooter() {
   return (
     <>
       {totalItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 flex justify-center z-40">
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-center z-40">
           <button
             type="button"
             onClick={() => setAberto(true)}
-            className="bg-pomodoro hover:bg-pomodoro-hover text-white w-full max-w-[900px] sm:max-w-[568px] p-4 rounded-lg font-semibold text-sm flex justify-between items-center shadow-lg transition-all active:scale-[0.99] cursor-pointer"
+            className="bg-pomodoro hover:bg-pomodoro-hover text-white w-full sm:max-w-lg p-4 rounded-lg font-semibold text-sm flex justify-between items-center shadow-lg transition-all active:scale-[0.99] cursor-pointer"
           >
             <span>Ver sacola ({totalItems} {totalItems === 1 ? 'item' : 'itens'})</span>
             <span>{formatarPreco(totalPrice)}</span>

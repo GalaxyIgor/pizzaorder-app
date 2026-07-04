@@ -28,7 +28,7 @@ function EntrarForm() {
   const [state, formAction, pending] = useActionState(signIn, estadoInicial);
 
   return (
-    <div className="max-w-full sm:max-w-md mx-auto p-4 min-h-screen flex flex-col justify-center">
+    <div className="max-w-full sm:max-w-md mx-auto p-4 py-8 min-h-dvh flex flex-col justify-center">
       <div className="bg-white border border-borda-suave rounded-2xl p-6 shadow-sm">
         <h1 className="font-display text-2xl font-bold text-carbono mb-1">Entrar</h1>
         <p className="text-sm text-creme-muted mb-6">

@@ -87,8 +87,8 @@ export function ProductListModal({ isOpen, onClose, title, category, products }:
     }));
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-lg max-w-2xl w-full max-h-[92dvh] sm:max-h-[85dvh] overflow-y-auto">
         {/* Cabeçalho + seletor de lados ficam juntos num único bloco sticky
             para o seletor não brigar com o cabeçalho ao rolar a lista. */}
         <div className="sticky top-0 z-20">
@@ -115,7 +115,7 @@ export function ProductListModal({ isOpen, onClose, title, category, products }:
           {category !== 'meia-meia' && erro && (
             <p className="text-center text-pomodoro text-sm mb-3">{erro}</p>
           )}
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
             {products.map((product) => {
               const selectedSide =
                 category === 'meia-meia'

@@ -31,6 +31,8 @@ export function ModalidadeStep({ pizzaria, value, onChange }: ModalidadeStepProp
     <div className="space-y-3">
       <h2 className="font-display text-lg font-bold text-carbono">Como você quer receber?</h2>
 
+      {/* Empilhados no celular; lado a lado (cards verticais) quando há largura */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {disponiveis.map((opcao) => {
         const selecionada = value === opcao.valor;
         return (
@@ -39,20 +41,20 @@ export function ModalidadeStep({ pizzaria, value, onChange }: ModalidadeStepProp
             type="button"
             onClick={() => onChange(opcao.valor)}
             aria-pressed={selecionada}
-            className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-colors ${
+            className={`relative w-full flex items-center sm:flex-col sm:items-start gap-3 sm:gap-2 p-4 rounded-xl border text-left transition-colors ${
               selecionada
                 ? 'border-pomodoro bg-pomodoro/5 ring-1 ring-pomodoro'
                 : 'border-borda-suave bg-white hover:border-creme-muted'
             }`}
           >
             <span className="text-2xl" aria-hidden="true">{opcao.icone}</span>
-            <span className="flex-1">
+            <span className="flex-1 sm:flex-none sm:pr-6">
               <span className="block font-semibold text-sm text-carbono">{opcao.titulo}</span>
               <span className="block text-xs text-creme-muted">{opcao.descricao}</span>
             </span>
             <span
               aria-hidden="true"
-              className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+              className={`w-5 h-5 flex-shrink-0 sm:absolute sm:top-3 sm:right-3 rounded-full border flex items-center justify-center ${
                 selecionada ? 'border-pomodoro bg-pomodoro' : 'border-borda-suave'
               }`}
             >
@@ -61,6 +63,7 @@ export function ModalidadeStep({ pizzaria, value, onChange }: ModalidadeStepProp
           </button>
         );
       })}
+      </div>
 
       {disponiveis.length === 0 && (
         <p className="text-sm text-creme-muted">

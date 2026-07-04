@@ -54,7 +54,7 @@ export default async function PedidoPage({
   const linhas = (itens ?? []) as ItemPedidoRow[];
 
   return (
-    <div className="max-w-full sm:max-w-md mx-auto p-4 min-h-screen">
+    <div className="max-w-full sm:max-w-md md:max-w-2xl mx-auto p-4 sm:p-6 min-h-screen">
       <header className="py-4 flex items-center gap-3">
         <Link
           href={`/${slug}/conta/pedidos`}
@@ -112,8 +112,9 @@ export default async function PedidoPage({
         </ul>
       </section>
 
-      {/* Entrega e pagamento */}
-      <section className="bg-white border border-borda-suave rounded-xl p-4 mt-3 text-sm space-y-1">
+      {/* Entrega/pagamento e totais: empilhados no celular, lado a lado no md+ */}
+      <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+      <section className="bg-white border border-borda-suave rounded-xl p-4 text-sm space-y-1">
         <p className="font-semibold text-carbono">{MODALIDADE_LABEL[detalhe.modalidade]}</p>
         {detalhe.endereco_entrega && (
           <p className="text-creme-muted">
@@ -141,7 +142,7 @@ export default async function PedidoPage({
       </section>
 
       {/* Totais */}
-      <section className="bg-white border border-borda-suave rounded-xl p-4 mt-3 text-sm space-y-1.5">
+      <section className="bg-white border border-borda-suave rounded-xl p-4 text-sm space-y-1.5">
         <div className="flex justify-between text-creme-muted">
           <span>Subtotal</span>
           <span>{formatarPreco(detalhe.subtotal)}</span>
@@ -163,6 +164,7 @@ export default async function PedidoPage({
           <span className="font-display text-lg">{formatarPreco(detalhe.total)}</span>
         </div>
       </section>
+      </div>
 
       <p className="text-center mt-6">
         <Link href={`/${slug}`} className="text-pomodoro font-semibold text-sm hover:underline">
