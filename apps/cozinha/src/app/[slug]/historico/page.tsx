@@ -4,13 +4,20 @@
 // "Dia" = dia local do Brasil (America/Sao_Paulo, UTC-3 fixo desde 2019).
 
 import Link from 'next/link';
-import { formatarPreco, MODALIDADE_LABEL, STATUS_LABEL } from '@pizzaorder/shared';
+import { MODALIDADE_LABEL, STATUS_LABEL } from '@pizzaorder/shared';
+import type { Modalidade, StatusPedido } from '@pizzaorder/shared';
 import { createClient } from '@/lib/supabase/server';
 import { exigirStaff } from '@/lib/staff';
 import { HeaderCozinha } from '@/components/HeaderCozinha';
-import type { PedidoResumo } from '@pizzaorder/shared';
 
-interface PedidoHistorico extends PedidoResumo {
+// Sem valores em dinheiro de propósito: faturamento é assunto da gestão,
+// o histórico da cozinha é operacional (o que saiu, o que foi cancelado).
+interface PedidoHistorico {
+  id: string;
+  numero: number;
+  status: StatusPedido;
+  modalidade: Modalidade;
+  criado_em: string;
   nome_cliente: string;
   motivo_cancelamento: string | null;
 }
@@ -31,7 +38,7 @@ export default async function HistoricoPage({
   const supabase = await createClient();
   const { data } = await supabase
     .from('pedidos')
-    .select('id, numero, status, modalidade, total, criado_em, nome_cliente, motivo_cancelamento')
+    .select('id, numero, status, modalidade, criado_em, nome_cliente, motivo_cancelamento')
     .eq('pizzaria_id', pizzaria.id)
     .in('status', ['concluido', 'cancelado'])
     .gte('criado_em', inicioDoDiaBrasil())
@@ -40,7 +47,6 @@ export default async function HistoricoPage({
   const pedidos = (data ?? []) as PedidoHistorico[];
   const concluidos = pedidos.filter((p) => p.status === 'concluido');
   const cancelados = pedidos.filter((p) => p.status === 'cancelado');
-  const faturamento = concluidos.reduce((soma, p) => soma + Number(p.total), 0);
 
   return (
     <div className="min-h-dvh flex flex-col">
@@ -53,10 +59,10 @@ export default async function HistoricoPage({
           <h2 className="font-display text-xl font-bold text-carbono">Histórico de hoje</h2>
         </div>
 
-        {/* totais simples */}
+        {/* totais simples (contagens — dinheiro é assunto da gestão) */}
         <div className="grid grid-cols-3 gap-3">
+          <Total rotulo="Pedidos" valor={String(pedidos.length)} />
           <Total rotulo="Concluídos" valor={String(concluidos.length)} />
-          <Total rotulo="Faturamento" valor={formatarPreco(faturamento)} />
           <Total rotulo="Cancelados" valor={String(cancelados.length)} />
         </div>
 
@@ -92,9 +98,6 @@ export default async function HistoricoPage({
                   }`}
                 >
                   {STATUS_LABEL[p.status]}
-                </span>
-                <span className="font-semibold text-carbono whitespace-nowrap">
-                  {formatarPreco(Number(p.total))}
                 </span>
               </li>
             ))}

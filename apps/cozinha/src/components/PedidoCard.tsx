@@ -185,9 +185,10 @@ export function PedidoCard({ slug, pedido, agora }: Props) {
         )}
         {pedido.status === 'saiu_para_entrega' && (
           <>
-            <BotaoPrimario onClick={() => mudar('concluido')} disabled={pending}>
-              {pending ? '...' : 'Entregue / concluir'}
-            </BotaoPrimario>
+            {/* quem confirma a entrega é a gestão — a cozinha só acompanha */}
+            <p className="flex-1 text-xs text-creme-muted self-center">
+              🛵 Em rota — a gestão confirma a entrega.
+            </p>
             <BotaoSecundario onClick={() => setDialogo('recusar')} disabled={pending}>
               Cancelar
             </BotaoSecundario>

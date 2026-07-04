@@ -47,6 +47,15 @@ export async function atualizarStatusPedido(
   if (input.novoStatus === 'saiu_para_entrega' && pedido.modalidade !== 'entrega') {
     return { erro: 'Esse pedido não é de entrega.' };
   }
+  // Regra de produto: quem confirma a entrega é a gestão, não a cozinha
+  // (a transição existe em TRANSICOES_STATUS para o futuro app de gestão).
+  if (
+    input.novoStatus === 'concluido' &&
+    pedido.modalidade === 'entrega' &&
+    statusAtual === 'saiu_para_entrega'
+  ) {
+    return { erro: 'A entrega é confirmada pela gestão, não pela cozinha.' };
+  }
 
   const mudancas: Record<string, unknown> = { status: input.novoStatus };
 
