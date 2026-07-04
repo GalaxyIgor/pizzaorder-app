@@ -28,13 +28,13 @@ export function ProductOptionCard({
       type="button"
       onClick={() => onSelect(product)}
       aria-pressed={isSelected}
-      className={`relative w-full flex flex-col gap-3 p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
+      className={`relative w-full flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition-all cursor-pointer ${
         isSelected
           ? selectedSide === 1
-            ? 'border-ouro bg-ouro/5 ring-1 ring-ouro'
+            ? 'border-ouro bg-ouro/5 ring-1 ring-ouro shadow-xs'
             : selectedSide === 2
-            ? 'border-pomodoro bg-pomodoro/5 ring-1 ring-pomodoro'
-            : 'border-ouro/70 bg-gradient-to-r from-ouro/10 via-white to-pomodoro/10 ring-1 ring-ouro/50'
+            ? 'border-pomodoro bg-pomodoro/5 ring-1 ring-pomodoro shadow-xs'
+            : 'border-ouro/70 bg-gradient-to-r from-ouro/10 via-white to-pomodoro/10 ring-1 ring-ouro/50 shadow-xs'
           : 'border-borda-suave hover:border-ouro/60 hover:shadow-sm'
       }`}
     >
@@ -55,20 +55,17 @@ export function ProductOptionCard({
             </div>
           )}
           {isSelected && (
-            <div className="absolute top-1 right-1 w-10 h-10 rounded-md overflow-hidden shadow-md border border-white/70">
-              {selectedSide === 'both' ? (
-                <div className="flex h-full w-full">
-                  <div className="flex-1 bg-ouro flex items-center justify-center text-[10px] font-bold text-white">1</div>
-                  <div className="flex-1 bg-pomodoro flex items-center justify-center text-[10px] font-bold text-white">2</div>
-                </div>
-              ) : (
-                <div className={`flex h-full w-full items-center justify-center text-sm font-semibold text-white ${
-                  selectedSide === 1 ? 'bg-ouro' : 'bg-pomodoro'
-                }`}>
-                  {selectedSide}
-                </div>
-              )}
-            </div>
+            <span
+              className={`absolute right-1 top-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm ${
+                selectedSide === 'both'
+                  ? 'bg-gradient-to-r from-ouro to-pomodoro'
+                  : selectedSide === 1
+                  ? 'bg-ouro'
+                  : 'bg-pomodoro'
+              }`}
+            >
+              {selectedSide === 'both' ? '1 + 2' : `Lado ${selectedSide}`}
+            </span>
           )}
         </div>
 

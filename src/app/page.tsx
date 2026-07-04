@@ -1,6 +1,7 @@
 // src/app/page.tsx
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
@@ -24,7 +25,7 @@ const PIZZARIAS: NearbyPizzaria[] = [
     distancia: '1,2 km',
     descricao: 'Entrega rápida e pizzas artesanais com ingredientes frescos.',
     status: 'Entrega',
-    logoUrl: 'https://images.unsplash.com/photo-1544378732-3b8a4c71740b?q=80&w=300',
+    logoUrl: 'https://images.unsplash.com/photo-1544378732-3b8a4c71740b?q=80&w=600',
   },
   {
     nome: 'Bella Massa',
@@ -34,7 +35,7 @@ const PIZZARIAS: NearbyPizzaria[] = [
     distancia: '2,8 km',
     descricao: 'Sabores clássicos e massa feita na hora para retirada no balcão.',
     status: 'Retirada',
-    logoUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=300',
+    logoUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=600',
   },
   {
     nome: 'Forno da Praça',
@@ -44,16 +45,17 @@ const PIZZARIAS: NearbyPizzaria[] = [
     distancia: '500 m',
     descricao: 'Ambiente aconchegante e pizzas especiais para comer no local.',
     status: 'Local',
-    logoUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=300',
+    logoUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=600',
   },
 ];
+
+const BAIRROS = ['Centro', 'Vila Nova', 'Jardim das Flores'];
 
 export default function HomePage() {
   const [busca, setBusca] = useState('');
   const [localizacao, setLocalizacao] = useState('');
   const [geoError, setGeoError] = useState('');
   const [geoLoading, setGeoLoading] = useState(false);
-  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
 
   const pizzariasFiltradas = useMemo(() => {
     const termo = busca.toLocaleLowerCase().trim();
@@ -73,6 +75,8 @@ export default function HomePage() {
       return correspondeBusca && correspondeLocalizacao;
     });
   }, [busca, localizacao]);
+
+  const temFiltro = busca !== '' || localizacao !== '';
 
   const handleUseLocation = () => {
     if (!navigator?.geolocation) {
@@ -96,147 +100,146 @@ export default function HomePage() {
     );
   };
 
+  const limparFiltros = () => {
+    setBusca('');
+    setLocalizacao('');
+    setGeoError('');
+  };
+
   return (
-    <main className="min-h-screen bg-[#fcf8f3] px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <section className="overflow-hidden rounded-[32px] border border-creme/60 bg-gradient-to-br from-white via-[#fffdf9] to-[#fdf5ea] p-8 shadow-[0_28px_80px_rgba(66,50,34,0.12)]">
-          <div className="flex flex-col gap-6">
-            <div className="max-w-2xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-manjericao/80">Pizza Order</p>
-              <h1 className="mt-4 text-4xl font-display font-bold text-carbono sm:text-5xl">As melhores pizzarias da sua região</h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-carbono/70 sm:text-lg">
-                Use a grade para escolher sua pizzaria por bairro, cidade ou pelo que está mais perto. O cardápio é aberto direto no local certo.
-              </p>
-            </div>
+    <div className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto p-4 min-h-screen pb-12">
+      <header className="py-6 border-b border-borda-suave">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-pomodoro">
+          Pizza Order
+        </h1>
+        <p className="text-sm text-creme-muted mt-1">
+          Escolha uma pizzaria perto de você e abra o cardápio direto no lugar certo.
+        </p>
+      </header>
 
-            <div className="grid gap-4">
-              <div className="rounded-[26px] border border-creme/70 bg-white/95 p-4 shadow-sm">
-                <label className="block text-sm font-medium text-carbono">Buscar pizzarias</label>
-                <input
-                  value={busca}
-                  onChange={(event) => setBusca(event.target.value)}
-                  placeholder="Ex: Centro, Vila Nova, São Paulo"
-                  className="mt-3 w-full rounded-3xl border border-creme/50 bg-[#fbf6ef] px-4 py-3 text-sm text-carbono outline-none transition duration-200 focus:border-manjericao focus:ring-2 focus:ring-manjericao/15"
-                />
-              </div>
+      <section className="mt-6 bg-white border border-borda-suave rounded-lg p-4 shadow-xs space-y-4">
+        <div>
+          <label htmlFor="busca" className="block text-sm font-medium text-carbono mb-1">
+            Buscar pizzarias
+          </label>
+          <input
+            id="busca"
+            type="search"
+            value={busca}
+            onChange={(event) => setBusca(event.target.value)}
+            placeholder="Nome, bairro ou cidade — ex: Centro"
+            className="w-full border border-borda-suave rounded-lg p-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pomodoro/40"
+          />
+        </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={handleUseLocation}
-                  className="inline-flex min-h-[3rem] items-center justify-center rounded-3xl bg-manjericao px-6 text-sm font-semibold text-white transition duration-200 hover:bg-manjericao/95"
-                >
-                  {geoLoading ? 'Buscando...' : 'Perto de mim'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFiltrosAbertos((atual) => !atual)}
-                  className="inline-flex min-h-[3rem] items-center justify-center rounded-3xl border border-carbono/10 bg-white px-6 text-sm font-semibold text-carbono transition duration-200 hover:border-manjericao"
-                >
-                  {filtrosAbertos ? 'Ocultar filtros' : 'Mostrar filtros'}
-                </button>
-              </div>
-            </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleUseLocation}
+            disabled={geoLoading}
+            className="bg-pomodoro hover:bg-pomodoro-hover text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer active:scale-[0.98] disabled:opacity-60"
+          >
+            📍 {geoLoading ? 'Buscando...' : 'Perto de mim'}
+          </button>
+
+          {BAIRROS.map((bairro) => {
+            const ativo = localizacao === bairro;
+            return (
+              <button
+                key={bairro}
+                type="button"
+                onClick={() => setLocalizacao(ativo ? '' : bairro)}
+                className={`text-sm font-medium px-4 py-2 rounded-full border transition-colors cursor-pointer ${
+                  ativo
+                    ? 'bg-manjericao text-white border-manjericao'
+                    : 'bg-white text-carbono border-borda-suave hover:border-manjericao'
+                }`}
+              >
+                {bairro}
+              </button>
+            );
+          })}
+
+          {temFiltro && (
+            <button
+              type="button"
+              onClick={limparFiltros}
+              className="text-sm font-medium text-creme-muted hover:text-carbono px-2 py-2 transition-colors cursor-pointer"
+            >
+              Limpar filtros
+            </button>
+          )}
+        </div>
+
+        {geoError && <p className="text-sm text-pomodoro">{geoError}</p>}
+      </section>
+
+      <main className="mt-8">
+        <div className="flex items-baseline justify-between gap-3 mb-4">
+          <h2 className="font-display text-2xl font-bold text-carbono">Pizzarias disponíveis</h2>
+          <p className="text-sm text-creme-muted flex-shrink-0">
+            {pizzariasFiltradas.length} {pizzariasFiltradas.length === 1 ? 'encontrada' : 'encontradas'}
+          </p>
+        </div>
+
+        {pizzariasFiltradas.length === 0 ? (
+          <div className="bg-white border border-borda-suave rounded-lg p-8 text-center shadow-xs">
+            <span className="text-3xl">🍕</span>
+            <p className="mt-3 text-sm text-creme-muted">
+              Nenhuma pizzaria encontrada com esses filtros.
+            </p>
+            <button
+              type="button"
+              onClick={limparFiltros}
+              className="mt-4 text-sm font-semibold text-pomodoro hover:text-pomodoro-hover transition-colors cursor-pointer"
+            >
+              Limpar filtros
+            </button>
           </div>
-
-          <div className={`mt-8 overflow-hidden rounded-[28px] bg-[#fff8ee] transition-all duration-300 ${filtrosAbertos ? 'max-h-[1000px] py-6 opacity-100' : 'max-h-0 py-0 opacity-0'}`}>
-            <div className="mx-auto max-w-6xl px-0 sm:px-4">
-              <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-                <div className="space-y-4">
-                  <div className="rounded-[26px] border border-creme/70 bg-white/90 p-5 shadow-sm">
-                    <p className="text-sm font-medium text-carbono">Filtros de localização</p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {['Centro', 'Vila Nova', 'Jardim das Flores'].map((bairro) => (
-                        <button
-                          key={bairro}
-                          type="button"
-                          onClick={() => setLocalizacao(bairro)}
-                          className={`rounded-full px-4 py-2 text-sm font-medium transition duration-200 ${localizacao === bairro ? 'bg-manjericao text-white shadow-sm' : 'border border-creme/70 bg-white text-carbono hover:border-manjericao'}`}
-                        >
-                          {bairro}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="mt-4 text-sm text-carbono/70">É possível ocultar os filtros a qualquer momento e continuar escolhendo pela grade.</p>
-                  </div>
-                </div>
-
-                <div className="rounded-[26px] border border-creme/70 bg-[#fff7ea] p-5 shadow-sm">
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-manjericao/90">Filtro ativo</p>
-                  <div className="mt-4 space-y-3 text-sm text-carbono/80">
-                    <p><span className="font-semibold text-carbono">Busca:</span> {busca || 'Nenhuma busca'}</p>
-                    <p><span className="font-semibold text-carbono">Localização:</span> {localizacao || 'Nenhuma localização'}</p>
-                    <p><span className="font-semibold text-carbono">Resultados:</span> {pizzariasFiltradas.length}</p>
-                  </div>
-                  {geoError ? <p className="mt-4 rounded-3xl bg-pomodoro/10 px-4 py-3 text-sm font-semibold text-pomodoro">{geoError}</p> : null}
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <button
-                      type="button"
-                      onClick={handleUseLocation}
-                      className="inline-flex min-h-[3rem] items-center justify-center rounded-3xl bg-manjericao px-5 text-sm font-semibold text-white transition duration-200 hover:bg-manjericao/95"
-                    >
-                      Usar localização
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLocalizacao('');
-                        setBusca('');
-                        setGeoError('');
-                      }}
-                      className="inline-flex min-h-[3rem] items-center justify-center rounded-3xl border border-carbono/10 bg-white px-5 text-sm font-semibold text-carbono transition duration-200 hover:border-manjericao"
-                    >
-                      Limpar filtros
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-10">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-manjericao/90">Pizzarias disponíveis</p>
-              <h2 className="mt-2 text-3xl font-bold text-carbono">Grade de pizzarias</h2>
-            </div>
-            <p className="text-sm text-carbono/70">{pizzariasFiltradas.length} pizzaria(s) encontrada(s)</p>
-          </div>
-
-          <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {pizzariasFiltradas.map((pizzaria) => (
-              <article key={pizzaria.slug} className="overflow-hidden rounded-[32px] border border-creme/60 bg-white shadow-[0_18px_40px_rgba(45,34,22,0.08)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(45,34,22,0.12)]">
-                <div className="relative h-44 overflow-hidden bg-[#f9f2e6]">
-                  <img src={pizzaria.logoUrl} alt={pizzaria.nome} className="h-full w-full object-cover" />
+              <article
+                key={pizzaria.slug}
+                className="bg-white border border-borda-suave rounded-lg p-4 flex flex-col gap-3 shadow-xs"
+              >
+                <div className="relative h-36 rounded-lg overflow-hidden bg-massa-bg">
+                  <Image
+                    src={pizzaria.logoUrl}
+                    alt={pizzaria.nome}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover"
+                  />
                 </div>
-                <div className="space-y-5 p-6">
-                  <div>
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-xl font-semibold text-carbono">{pizzaria.nome}</h3>
-                      <span className="rounded-full bg-manjericao/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-manjericao">{pizzaria.status}</span>
-                    </div>
-                    <p className="mt-3 text-sm leading-6 text-carbono/70">{pizzaria.descricao}</p>
-                  </div>
 
-                  <div className="grid gap-2 text-sm text-carbono/80">
-                    <p><span className="font-semibold text-carbono">Bairro:</span> {pizzaria.bairro}</p>
-                    <p><span className="font-semibold text-carbono">Cidade:</span> {pizzaria.cidade}</p>
-                    <p><span className="font-semibold text-carbono">Distância:</span> {pizzaria.distancia}</p>
-                  </div>
-
-                  <Link
-                    href={`/${pizzaria.slug}`}
-                    className="inline-flex w-full items-center justify-center rounded-3xl bg-pomodoro px-5 py-3 text-sm font-semibold text-white transition duration-200 hover:bg-pomodoro/90"
-                  >
-                    Abrir cardápio
-                  </Link>
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-display font-semibold text-carbono text-lg leading-tight">
+                    {pizzaria.nome}
+                  </h3>
+                  <span className="flex-shrink-0 bg-manjericao/10 text-manjericao text-xs font-semibold px-3 py-1 rounded-full">
+                    {pizzaria.status}
+                  </span>
                 </div>
+
+                <p className="text-sm text-creme-muted leading-relaxed">{pizzaria.descricao}</p>
+
+                <p className="text-sm text-creme-muted">
+                  📍 {pizzaria.bairro}, {pizzaria.cidade}
+                  <span className="text-manjericao font-semibold"> · {pizzaria.distancia}</span>
+                </p>
+
+                <Link
+                  href={`/${pizzaria.slug}`}
+                  className="mt-auto w-full text-center bg-pomodoro hover:bg-pomodoro-hover text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors active:scale-[0.98]"
+                >
+                  Ver cardápio
+                </Link>
               </article>
             ))}
           </div>
-        </section>
-      </div>
-    </main>
+        )}
+      </main>
+    </div>
   );
 }

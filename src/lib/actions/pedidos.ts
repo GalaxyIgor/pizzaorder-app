@@ -31,7 +31,7 @@ interface ProdutoSaborRow {
   id: string;
   pizzaria_id: string;
   disponivel: boolean;
-  variacoes_produto: { preco: number; disponivel: boolean }[];
+  variacoes_produto: { preco: number; tamanho: string | null; disponivel: boolean }[];
 }
 
 interface OpcaoRow {
@@ -135,7 +135,7 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
     saborIds.length > 0
       ? admin
           .from('produtos')
-          .select('id, pizzaria_id, disponivel, variacoes_produto(preco, disponivel)')
+          .select('id, pizzaria_id, disponivel, variacoes_produto(preco, tamanho, disponivel)')
           .in('id', saborIds)
       : Promise.resolve({ data: [], error: null }),
     opcaoIds.length > 0
@@ -215,17 +215,24 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
     } else {
       const ids = (item.sabores ?? []).map((s) => s.produtoId);
       if (ids.length !== 2) return { erro: ERRO_ITEM_INDISPONIVEL };
+      // meia-meia com tamanho escolhido usa o preço daquele tamanho em cada
+      // metade; sem tamanho (fluxo antigo/combo), usa o menor preço de cada uma
+      const tamanho = item.tamanho ?? null;
       const precos: number[] = [];
       for (const id of ids) {
         const produto = sabores.get(id);
         if (!produto || !produto.disponivel || produto.pizzaria_id !== pizzaria.id) {
           return { erro: ERRO_ITEM_INDISPONIVEL };
         }
-        const menor = menorPrecoDisponivel(produto.variacoes_produto);
-        if (menor === null) return { erro: ERRO_ITEM_INDISPONIVEL };
-        precos.push(menor);
+        const preco = tamanho
+          ? produto.variacoes_produto.find((v) => v.disponivel && v.tamanho === tamanho)?.preco ?? null
+          : menorPrecoDisponivel(produto.variacoes_produto);
+        if (preco === null) return { erro: ERRO_ITEM_INDISPONIVEL };
+        precos.push(preco);
       }
-      precoUnit = precoMeiaMeia(precos[0], precos[1], configMeiaMeia);
+      const extras = precoAdicionais(item, tamanho);
+      if (extras === null) return { erro: ERRO_ITEM_INDISPONIVEL };
+      precoUnit = precoMeiaMeia(precos[0], precos[1], configMeiaMeia) + extras;
     }
 
     linhas.push({

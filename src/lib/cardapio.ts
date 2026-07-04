@@ -21,11 +21,8 @@ export function variacaoDisponivel(produto: Produto): VariacaoProduto | undefine
   return produto.variacoes_produto.find((v) => v.disponivel);
 }
 
-/** Preço de um meia-meia a partir das duas pizzas escolhidas, seguindo a estratégia configurada pelo tenant. */
-export function precoMeiaMeia(pizza1: Produto, pizza2: Produto, config: ConfigMeiaMeia): number {
-  const preco1 = menorPreco(pizza1);
-  const preco2 = menorPreco(pizza2);
-
+/** Aplica a estratégia de preço do meia-meia configurada pelo tenant sobre os preços das duas metades. */
+export function aplicarEstrategiaMeiaMeia(preco1: number, preco2: number, config: ConfigMeiaMeia): number {
   switch (config.estrategia) {
     case 'maior':
       return Math.max(preco1, preco2);
@@ -36,6 +33,40 @@ export function precoMeiaMeia(pizza1: Produto, pizza2: Produto, config: ConfigMe
     case 'fixo':
       return config.precoFixo ?? Math.max(preco1, preco2);
   }
+}
+
+/** Preço de um meia-meia a partir das duas pizzas escolhidas (menor preço de cada uma). */
+export function precoMeiaMeia(pizza1: Produto, pizza2: Produto, config: ConfigMeiaMeia): number {
+  return aplicarEstrategiaMeiaMeia(menorPreco(pizza1), menorPreco(pizza2), config);
+}
+
+/** Tamanhos disponíveis nas duas metades ao mesmo tempo (na ordem das variações da pizza 1). */
+export function tamanhosComunsMeiaMeia(pizza1: Produto, pizza2: Produto): Tamanho[] {
+  const doLado2 = new Set(
+    pizza2.variacoes_produto
+      .filter((v) => v.disponivel && v.tamanho != null)
+      .map((v) => v.tamanho as Tamanho)
+  );
+  return pizza1.variacoes_produto
+    .filter((v) => v.disponivel && v.tamanho != null && doLado2.has(v.tamanho))
+    .map((v) => v.tamanho as Tamanho);
+}
+
+/** Preço do meia-meia em um tamanho específico (metade sem o tamanho cai no menor preço dela). */
+export function precoMeiaMeiaPorTamanho(
+  pizza1: Produto,
+  pizza2: Produto,
+  tamanho: Tamanho | null,
+  config: ConfigMeiaMeia
+): number {
+  const precoDe = (p: Produto) => {
+    const variacao =
+      tamanho != null
+        ? p.variacoes_produto.find((v) => v.disponivel && v.tamanho === tamanho)
+        : undefined;
+    return variacao?.preco ?? menorPreco(p);
+  };
+  return aplicarEstrategiaMeiaMeia(precoDe(pizza1), precoDe(pizza2), config);
 }
 
 /** Produto tem mais de uma variação de tamanho (precisa mostrar passo "escolher tamanho") */

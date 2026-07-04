@@ -14,7 +14,7 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
-import type { ConfigMeiaMeia, Produto, VariacaoProduto } from '@/types/cardapio';
+import type { ConfigMeiaMeia, Produto, Tamanho, VariacaoProduto } from '@/types/cardapio';
 import type { ComboMeiaMeia } from '@/types/product-list-modal';
 import type { CartItem, CartItemAdicional } from '@/types/carrinho';
 import { precoMeiaMeia, variacaoDisponivel } from '@/lib/cardapio';
@@ -84,6 +84,13 @@ interface CartContextValue {
     adicionais: CartItemAdicional[]
   ) => void;
   addMeiaMeia: (pizza1: Produto, pizza2: Produto) => void;
+  addMeiaMeiaPersonalizado: (
+    pizza1: Produto,
+    pizza2: Produto,
+    tamanho: Tamanho | null,
+    precoBase: number,
+    adicionais: CartItemAdicional[]
+  ) => void;
   addCombo: (combo: ComboMeiaMeia) => void;
   increment: (id: string) => void;
   decrement: (id: string) => void;
@@ -98,7 +105,15 @@ const sigProduto = (variacaoId: string, adicionais: CartItemAdicional[] = []) =>
   const extras = adicionais.map((a) => a.opcaoId).sort().join(',');
   return extras ? `p:${variacaoId}|${extras}` : `p:${variacaoId}`;
 };
-const sigMeiaMeia = (id1: string, id2: string) => `mm:${[id1, id2].sort().join('-')}`;
+const sigMeiaMeia = (
+  id1: string,
+  id2: string,
+  tamanho: string | null = null,
+  adicionais: CartItemAdicional[] = []
+) => {
+  const extras = adicionais.map((a) => a.opcaoId).sort().join(',');
+  return `mm:${[id1, id2].sort().join('-')}${tamanho ? `|t:${tamanho}` : ''}${extras ? `|${extras}` : ''}`;
+};
 
 export function CartProvider({
   slug,
@@ -200,6 +215,37 @@ export function CartProvider({
     });
   };
 
+  const addMeiaMeiaPersonalizado = (
+    pizza1: Produto,
+    pizza2: Produto,
+    tamanho: Tamanho | null,
+    precoBase: number,
+    adicionais: CartItemAdicional[]
+  ) => {
+    const precoAdicionais = adicionais.reduce((acc, a) => acc + a.preco, 0);
+    const extrasPagos = adicionais.filter((a) => a.preco > 0).map((a) => a.nome);
+    const partes = [tamanho, `${pizza1.nome} / ${pizza2.nome}`, ...extrasPagos].filter(Boolean) as string[];
+
+    dispatch({
+      type: 'ADD',
+      item: {
+        id: sigMeiaMeia(pizza1.id, pizza2.id, tamanho, adicionais),
+        tipo: 'meia-meia',
+        nome: 'Pizza Meia a Meia',
+        descricao: partes.join(' · '),
+        imagem_url: pizza1.imagem_url,
+        precoUnit: precoBase + precoAdicionais,
+        quantidade: 1,
+        tamanho: tamanho ?? null,
+        sabores: [
+          { produtoId: pizza1.id, nome: pizza1.nome, descricao: pizza1.descricao },
+          { produtoId: pizza2.id, nome: pizza2.nome, descricao: pizza2.descricao },
+        ],
+        adicionais,
+      },
+    });
+  };
+
   const addCombo = (combo: ComboMeiaMeia) => {
     dispatch({
       type: 'ADD',
@@ -229,6 +275,7 @@ export function CartProvider({
       addProduto,
       addProdutoPersonalizado,
       addMeiaMeia,
+      addMeiaMeiaPersonalizado,
       addCombo,
       increment: (id) => dispatch({ type: 'INCREMENT', id }),
       decrement: (id) => dispatch({ type: 'DECREMENT', id }),

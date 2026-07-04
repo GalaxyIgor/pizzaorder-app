@@ -7,15 +7,13 @@ import { ProductListModalHeader } from '@/components/cardapio/modals/ProductList
 import { HalfAndHalfSelector } from '@/components/cardapio/modals/HalfAndHalfSelector';
 import { ProductOptionCard } from '@/components/cardapio/modals/ProductOptionCard';
 import { ProductListModalFooter } from '@/components/cardapio/modals/ProductListModalFooter';
-import { useCart } from '@/contexts/CartContext';
 import { useProdutoDetalhe } from '@/contexts/ProdutoDetalheContext';
 import { formatarPreco } from '@/lib/cardapio';
 
 const FLAVORS_VAZIO: SelectedFlavors = { lado1: null, lado2: null };
 
 export function ProductListModal({ isOpen, onClose, title, category, products }: ProductListModalProps) {
-  const { addMeiaMeia } = useCart();
-  const { adicionar } = useProdutoDetalhe();
+  const { adicionar, adicionarMeiaMeia } = useProdutoDetalhe();
   const [selectedFlavors, setSelectedFlavors] = useState<SelectedFlavors>(FLAVORS_VAZIO);
   const [selectedProduct, setSelectedProduct] = useState<Produto | null>(null);
   const [selectingLado, setSelectingLado] = useState<1 | 2 | null>(null);
@@ -68,7 +66,8 @@ export function ProductListModal({ isOpen, onClose, title, category, products }:
         setErro('Selecione os dois lados antes de continuar.');
         return;
       }
-      addMeiaMeia(selectedFlavors.lado1, selectedFlavors.lado2);
+      // abre o passo de personalização (tamanho/borda/adicionais) quando houver o que escolher
+      adicionarMeiaMeia(selectedFlavors.lado1, selectedFlavors.lado2);
     } else {
       if (!selectedProduct) {
         setErro('Selecione um item antes de adicionar.');
@@ -90,17 +89,21 @@ export function ProductListModal({ isOpen, onClose, title, category, products }:
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <ProductListModalHeader title={title} onClose={handleClose} />
+        {/* Cabeçalho + seletor de lados ficam juntos num único bloco sticky
+            para o seletor não brigar com o cabeçalho ao rolar a lista. */}
+        <div className="sticky top-0 z-20">
+          <ProductListModalHeader title={title} onClose={handleClose} />
 
-        {category === 'meia-meia' && (
-          <HalfAndHalfSelector
-            selectedFlavors={selectedFlavors}
-            selectingLado={ladoAtivo}
-            erro={erro}
-            onChooseSide={handleChooseSide}
-            onResetSide={handleResetSide}
-          />
-        )}
+          {category === 'meia-meia' && (
+            <HalfAndHalfSelector
+              selectedFlavors={selectedFlavors}
+              selectingLado={ladoAtivo}
+              erro={erro}
+              onChooseSide={handleChooseSide}
+              onResetSide={handleResetSide}
+            />
+          )}
+        </div>
 
         {ladoAtivo && (
           <p className="text-center text-creme-muted pt-4 px-4 text-sm">
