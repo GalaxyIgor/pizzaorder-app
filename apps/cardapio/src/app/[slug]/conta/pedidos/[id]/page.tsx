@@ -8,6 +8,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { formatarPreco } from '@/lib/cardapio';
 import { StatusBadge } from '@/components/conta/StatusBadge';
+import { PedidoStatusLive } from '@/components/conta/PedidoStatusLive';
 import {
   METODO_PAGAMENTO_LABEL,
   MODALIDADE_LABEL,
@@ -51,6 +52,8 @@ export default async function PedidoPage({
 
   return (
     <div className="max-w-full sm:max-w-md md:max-w-2xl mx-auto p-4 sm:p-6 min-h-screen">
+      {/* status muda ao vivo conforme a cozinha trabalha */}
+      <PedidoStatusLive filtro={`id=eq.${detalhe.id}`} />
       <header className="py-4 flex items-center gap-3">
         <Link
           href={`/${slug}/conta/pedidos`}

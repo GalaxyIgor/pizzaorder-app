@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabase as admin } from '@/lib/supabase';
 import { formatarPreco } from '@/lib/cardapio';
 import { StatusBadge } from '@/components/conta/StatusBadge';
+import { PedidoStatusLive } from '@/components/conta/PedidoStatusLive';
 import { MODALIDADE_LABEL, type PedidoResumo } from '@/types/pedido';
 
 export default async function MeusPedidosPage({
@@ -41,7 +42,9 @@ export default async function MeusPedidosPage({
   const lista = (pedidos ?? []) as PedidoResumo[];
 
   return (
-    <div className="max-w-full sm:max-w-md md:max-w-2xl mx-auto p-4 sm:p-6 min-h-screen">
+    <div className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto p-4 sm:p-6 min-h-screen">
+      {/* status dos pedidos muda ao vivo conforme a cozinha trabalha */}
+      <PedidoStatusLive filtro={`cliente_id=eq.${user.id}`} />
       <header className="py-4 flex items-center gap-3">
         <Link href={`/${slug}`} aria-label="Voltar ao cardápio" className="text-creme-muted hover:text-carbono text-xl">
           ←
@@ -64,12 +67,12 @@ export default async function MeusPedidosPage({
           </Link>
         </div>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {lista.map((pedido) => (
             <li key={pedido.id}>
               <Link
                 href={`/${slug}/conta/pedidos/${pedido.id}`}
-                className="block bg-white border border-borda-suave rounded-xl p-4 hover:border-creme-muted transition-colors"
+                className="block h-full bg-white border border-borda-suave rounded-xl p-4 hover:border-creme-muted transition-colors"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-semibold text-sm text-carbono">Pedido #{pedido.numero}</span>
