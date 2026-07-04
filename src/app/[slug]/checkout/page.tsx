@@ -58,6 +58,9 @@ export default function CheckoutPage() {
   const [metodoPagamento, setMetodoPagamento] = useState<MetodoPagamentoLocal | null>(null);
   const [observacao, setObservacao] = useState('');
   const [erro, setErro] = useState<string | null>(null);
+  // Falha ao confirmar o pedido (retorno de criarPedido): vira tela cheia,
+  // diferente dos avisos inline das etapas intermediárias.
+  const [falha, setFalha] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   // ------- dados do cliente logado (perfil + endereços salvos) -------
@@ -161,8 +164,8 @@ export default function CheckoutPage() {
         metodoPagamentoLocal: metodoPagamento,
         itens: items,
       });
-      if (resultado?.erro) setErro(resultado.erro);
-      // sucesso => redirect do server para /conta/pedidos/[id]?novo=1
+      if (resultado?.erro) setFalha(resultado.erro);
+      // sucesso => redirect do server para /conta/pedidos/[id]/confirmacao?novo=1
     });
   };
 
@@ -205,6 +208,46 @@ export default function CheckoutPage() {
       )}
     </>
   );
+
+  // ------- falha ao confirmar o pedido (tela cheia) -------
+  if (falha) {
+    return (
+      <div className="max-w-full sm:max-w-md mx-auto p-4 py-8 min-h-dvh flex flex-col justify-center">
+        <div className="bg-white border border-borda-suave rounded-2xl p-6 shadow-sm text-center space-y-4">
+          <span className="text-5xl" aria-hidden="true">
+            😕
+          </span>
+          <div>
+            <h1 className="font-display text-2xl font-bold text-carbono">
+              Não conseguimos concluir seu pedido
+            </h1>
+            <p role="alert" className="text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3 mt-3">
+              {falha}
+            </p>
+            <p className="text-sm text-creme-muted mt-3">
+              Nada foi cobrado. Você pode tentar de novo ou revisar a sacola no cardápio.
+            </p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setFalha(null)}
+              className="block w-full bg-pomodoro hover:bg-pomodoro-hover text-white p-3 rounded-lg font-semibold text-sm transition-colors active:scale-[0.99] cursor-pointer"
+            >
+              Tentar novamente
+            </button>
+            <Link
+              href={`/${slug}`}
+              className="block w-full p-3 rounded-lg border-2 border-borda-suave text-carbono font-semibold text-sm hover:bg-massa-bg transition-colors"
+            >
+              Voltar ao cardápio
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ------- sacola vazia -------
   if (items.length === 0) {

@@ -1,14 +1,13 @@
 // src/app/[slug]/conta/pedidos/[id]/page.tsx
 //
-// Detalhe do pedido (RLS garante que só o dono enxerga). É o destino do
-// redirect do checkout (?novo=1 => banner de sucesso + limpeza do carrinho).
+// Detalhe do pedido (RLS garante que só o dono enxerga). O checkout redireciona
+// para a página de confirmação (./confirmacao), que aponta para cá.
 
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { formatarPreco } from '@/lib/cardapio';
 import { StatusBadge } from '@/components/conta/StatusBadge';
-import { PedidoConfirmado } from '@/components/conta/PedidoConfirmado';
 import {
   METODO_PAGAMENTO_LABEL,
   MODALIDADE_LABEL,
@@ -18,13 +17,10 @@ import {
 
 export default async function PedidoPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ slug: string; id: string }>;
-  searchParams: Promise<{ novo?: string }>;
 }) {
   const { slug, id } = await params;
-  const { novo } = await searchParams;
 
   const supabase = await createClient();
   const {
@@ -77,8 +73,6 @@ export default async function PedidoPage({
         </div>
         <StatusBadge status={detalhe.status} />
       </header>
-
-      <PedidoConfirmado ativo={novo === '1'} />
 
       {/* Itens */}
       <section className="bg-white border border-borda-suave rounded-xl p-4 space-y-3">

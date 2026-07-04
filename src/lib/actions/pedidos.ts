@@ -340,6 +340,6 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
     });
   }
 
-  // Sucesso: página do pedido limpa o carrinho ao ver ?novo=1
-  redirect(`/${input.slug}/conta/pedidos/${pedido.id}?novo=1`);
+  // Sucesso: página de confirmação limpa o carrinho ao ver ?novo=1
+  redirect(`/${input.slug}/conta/pedidos/${pedido.id}/confirmacao?novo=1`);
 }
