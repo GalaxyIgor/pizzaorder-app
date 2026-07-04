@@ -3,10 +3,12 @@ import type { Produto } from '@/types/cardapio';
 import { menorPreco } from '@/lib/cardapio';
 import type { ProductListModalCategory } from '@/types/product-list-modal';
 
+export type SelectedSide = 1 | 2 | 'both' | null;
+
 interface ProductOptionCardProps {
   product: Produto;
   category: ProductListModalCategory;
-  isSelected: boolean;
+  selectedSide: SelectedSide;
   onSelect: (product: Produto) => void;
   formatarPreco: (preco: number) => string;
 }
@@ -14,20 +16,25 @@ interface ProductOptionCardProps {
 export function ProductOptionCard({
   product,
   category,
-  isSelected,
+  selectedSide,
   onSelect,
   formatarPreco,
 }: ProductOptionCardProps) {
   const tamanhoBebida = category === 'bebidas' ? product.variacoes_produto[0]?.tamanho : null;
+  const isSelected = selectedSide !== null;
 
   return (
     <button
       type="button"
       onClick={() => onSelect(product)}
       aria-pressed={isSelected}
-      className={`w-full flex flex-col gap-3 p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
+      className={`relative w-full flex flex-col gap-3 p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
         isSelected
-          ? 'border-ouro bg-ouro/5 ring-1 ring-ouro'
+          ? selectedSide === 1
+            ? 'border-ouro bg-ouro/5 ring-1 ring-ouro'
+            : selectedSide === 2
+            ? 'border-pomodoro bg-pomodoro/5 ring-1 ring-pomodoro'
+            : 'border-ouro/70 bg-gradient-to-r from-ouro/10 via-white to-pomodoro/10 ring-1 ring-ouro/50'
           : 'border-borda-suave hover:border-ouro/60 hover:shadow-sm'
       }`}
     >
@@ -48,8 +55,19 @@ export function ProductOptionCard({
             </div>
           )}
           {isSelected && (
-            <div className="absolute top-1 right-1 bg-ouro text-white w-6 h-6 rounded-full flex items-center justify-center text-sm shadow-md">
-              ✓
+            <div className="absolute top-1 right-1 w-10 h-10 rounded-md overflow-hidden shadow-md border border-white/70">
+              {selectedSide === 'both' ? (
+                <div className="flex h-full w-full">
+                  <div className="flex-1 bg-ouro flex items-center justify-center text-[10px] font-bold text-white">1</div>
+                  <div className="flex-1 bg-pomodoro flex items-center justify-center text-[10px] font-bold text-white">2</div>
+                </div>
+              ) : (
+                <div className={`flex h-full w-full items-center justify-center text-sm font-semibold text-white ${
+                  selectedSide === 1 ? 'bg-ouro' : 'bg-pomodoro'
+                }`}>
+                  {selectedSide}
+                </div>
+              )}
             </div>
           )}
         </div>

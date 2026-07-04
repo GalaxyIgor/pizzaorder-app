@@ -53,7 +53,7 @@ begin
   ) values (
     'Pizzaria Teste',
     'pizzaria-teste',
-    'https://example.com/logo-pizzaria-teste.png',
+    'https://images.unsplash.com/photo-1544378732-3b8a4c71740b?auto=format&fit=crop&w=300&q=80',
     '#e63946',
     '{"estrategia":"maior"}',
     '{"tipo":"fixo","valorFixo":8}',

@@ -47,16 +47,19 @@ export function ProductListModal({ isOpen, onClose, title, category, products }:
       return;
     }
 
-    if (ladoAtivo === 1) {
-      setErro(null);
-      setSelectedFlavors((prev) => ({ ...prev, lado1: product }));
-      setSelectingLado(2);
-    } else if (ladoAtivo === 2) {
-      // Sabores iguais são permitidos (pizza inteira de um sabor só).
-      setErro(null);
-      setSelectedFlavors((prev) => ({ ...prev, lado2: product }));
-      setSelectingLado(null);
+    if (!ladoAtivo) {
+      return;
     }
+
+    setErro(null);
+    setSelectedFlavors((prev) => {
+      const next =
+        ladoAtivo === 1
+          ? { ...prev, lado1: product }
+          : { ...prev, lado2: product };
+      setSelectingLado(next.lado1 && next.lado2 ? null : ladoAtivo === 1 ? 2 : 1);
+      return next;
+    });
   };
 
   const handleAddToCart = () => {
@@ -111,19 +114,25 @@ export function ProductListModal({ isOpen, onClose, title, category, products }:
           )}
           <div className="space-y-3">
             {products.map((product) => {
-              const isSelected =
+              const selectedSide =
                 category === 'meia-meia'
-                  ? (ladoAtivo
-                      ? selectedFlavors[`lado${ladoAtivo}`]?.id === product.id
-                      : false)
-                  : selectedProduct?.id === product.id;
+                  ? selectedFlavors.lado1?.id === product.id && selectedFlavors.lado2?.id === product.id
+                    ? 'both'
+                    : selectedFlavors.lado1?.id === product.id
+                    ? 1
+                    : selectedFlavors.lado2?.id === product.id
+                    ? 2
+                    : null
+                  : selectedProduct?.id === product.id
+                    ? 1
+                    : null;
 
               return (
                 <ProductOptionCard
                   key={product.id}
                   product={product}
                   category={category}
-                  isSelected={isSelected}
+                  selectedSide={selectedSide}
                   onSelect={handleProductSelect}
                   formatarPreco={formatarPreco}
                 />
