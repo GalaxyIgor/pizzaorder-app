@@ -45,20 +45,40 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
   // ------- Realtime + fallback de polling -------
   useEffect(() => {
     const supabase = createClient();
+    let cancelado = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    const channel = supabase
-      .channel(`pedidos:${pizzariaId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'pedidos',
-          filter: `pizzaria_id=eq.${pizzariaId}`,
-        },
-        () => router.refresh()
-      )
-      .subscribe();
+    (async () => {
+      // Garante que o socket usa o token do staff (a policy de SELECT é o que
+      // autoriza os eventos) ANTES de assinar — em vez de confiar na hidratação
+      // assíncrona da sessão.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelado) return;
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token);
+
+      // Nome único por montagem: o client é singleton e, no StrictMode do dev,
+      // montar/desmontar/remontar com o MESMO topic cria corrida de join/leave
+      // que mata a assinatura silenciosamente.
+      channel = supabase
+        .channel(`pedidos:${pizzariaId}:${Math.random().toString(36).slice(2)}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'pedidos',
+            filter: `pizzaria_id=eq.${pizzariaId}`,
+          },
+          () => router.refresh()
+        )
+        .subscribe((status, err) => {
+          if (status !== 'SUBSCRIBED') {
+            console.warn('[realtime pedidos]', status, err?.message ?? '');
+          }
+        });
+    })();
 
     // sessões longas de cozinha: repassa o token renovado pro socket
     const {
@@ -75,7 +95,8 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
     const relogio = setInterval(() => setAgora(Date.now()), 30_000);
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelado = true;
+      if (channel) supabase.removeChannel(channel);
       authSub.unsubscribe();
       clearInterval(timer);
       clearInterval(relogio);
