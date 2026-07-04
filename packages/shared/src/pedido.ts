@@ -1,9 +1,10 @@
-// src/types/pedido.ts
+// packages/shared/src/pedido.ts
 //
-// Tipos do fluxo de pedido (checkout + minha conta), espelhando as tabelas
-// `pedidos` e `itens_pedido` de supabase/checkout.sql.
+// Tipos do fluxo de pedido, espelhando as tabelas `pedidos` e `itens_pedido`
+// de supabase/checkout.sql. Fonte única do vocabulário de status — usada pelo
+// cardápio (cliente) e pela cozinha.
 
-import type { CartItem, CartItemAdicional, CartItemSabor } from '@/types/carrinho';
+import type { CartItem, CartItemAdicional, CartItemSabor } from './carrinho';
 
 export type Modalidade = 'entrega' | 'retirada' | 'local';
 
@@ -54,7 +55,7 @@ export interface CriarPedidoInput {
 }
 
 // ============================================================
-// LINHAS lidas do banco (páginas "meus pedidos")
+// LINHAS lidas do banco (páginas "meus pedidos" / painel da cozinha)
 // ============================================================
 
 export interface PedidoResumo {

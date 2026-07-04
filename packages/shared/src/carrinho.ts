@@ -1,8 +1,10 @@
-// src/types/carrinho.ts
+// packages/shared/src/carrinho.ts
 //
-// Tipos do carrinho (estado client-side). Um CartItem é uma "linha" da sacola:
-// um produto simples ou um meia-meia. É serializável (localStorage / envio futuro
-// para a API de pedidos), então guarda apenas dados primitivos + referências por id.
+// Tipos do carrinho (estado client-side do cardápio). Um CartItem é uma "linha"
+// da sacola: um produto simples ou um meia-meia. É serializável (localStorage /
+// envio para a API de pedidos), então guarda apenas dados primitivos + ids.
+// Compartilhado porque `itens_pedido.sabores`/`adicionais` (jsonb) usam estes
+// formatos — a cozinha também os renderiza.
 
 export type CartItemTipo = 'produto' | 'meia-meia';
 

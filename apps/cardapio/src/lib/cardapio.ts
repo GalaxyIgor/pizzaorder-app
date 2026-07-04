@@ -4,10 +4,9 @@
 
 import type { Categoria, ConfigMeiaMeia, GrupoAdicional, OpcaoAdicional, Produto, Tamanho, TipoCategoria, VariacaoProduto } from '@/types/cardapio';
 
-/** Formata um valor em Reais (pt-BR). */
-export function formatarPreco(valor: number): string {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+// Movida para @pizzaorder/shared (a cozinha também formata preços);
+// reexportada para manter os imports existentes.
+export { formatarPreco } from '@pizzaorder/shared';
 
 /** Menor preço entre as variações de um produto — usado nos cards ("a partir de") */
 export function menorPreco(produto: Produto): number {
