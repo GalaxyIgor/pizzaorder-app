@@ -8,6 +8,7 @@ import { Suspense, useActionState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { signUp, type AuthState } from '@/lib/actions/auth';
+import { PasswordInput } from '@/components/auth/PasswordInput';
 
 const estadoInicial: AuthState = {};
 
@@ -70,21 +71,15 @@ function CadastroForm() {
             <input id="email" name="email" type="email" required autoComplete="email" className={inputClass} />
           </div>
 
-          <div>
-            <label htmlFor="senha" className="block text-sm font-medium text-carbono mb-1">
-              Senha
-            </label>
-            <input
-              id="senha"
-              name="senha"
-              type="password"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className={inputClass}
-            />
-            <p className="text-xs text-creme-muted mt-1">Mínimo de 6 caracteres.</p>
-          </div>
+          <PasswordInput
+            id="senha"
+            name="senha"
+            label="Senha"
+            required
+            autoComplete="new-password"
+            minLength={6}
+            helperText="Mínimo de 6 caracteres."
+          />
 
           {state.erro && (
             <p role="alert" className="text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3">
