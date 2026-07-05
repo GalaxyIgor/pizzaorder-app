@@ -3,7 +3,7 @@
 // src/components/RecusarDialog.tsx
 //
 // Recusar (pendente) ou cancelar (demais status) com motivo obrigatório.
-// O motivo é interno (gestão) — o cliente vê apenas "Cancelado".
+// O motivo é interno — o cliente vê apenas "Cancelado".
 
 import { useState } from 'react';
 import { Overlay } from '@/components/AceitarDialog';

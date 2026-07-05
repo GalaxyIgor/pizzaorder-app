@@ -2,7 +2,9 @@
 
 // src/components/PainelPedidos.tsx
 //
-// Colunas do painel (Novos / Em preparo / Prontos & em rota).
+// Colunas do painel (Fila / Cozinhando / Prontas). A cozinha é produção pura:
+// a gestão aceita o pedido (entra na Fila com a previsão), a cozinha pega
+// (Cozinhando) e avisa que ficou pronta; dali em diante é com a gestão.
 //
 // Tempo real: assina postgres_changes de `pedidos` (a policy RLS
 // pedidos_select_staff é o que autoriza os eventos) e, a cada evento,
@@ -14,9 +16,8 @@
 // visual (badge/título da aba) continua funcionando.
 //
 // Arrastar: segurar um card (~250ms) e soltar na próxima coluna avança o
-// status (pointer events — mouse e toque, sem lib). Só transições da máquina
-// de estados: Novos→Em preparo abre o diálogo de previsão; Em preparo→Prontos
-// marca pronto. Os botões continuam existindo como caminho alternativo.
+// status (pointer events — mouse e toque, sem lib). Só transições da cozinha:
+// Fila→Cozinhando e Cozinhando→Prontas. Os botões continuam como alternativa.
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -25,14 +26,13 @@ import { atualizarStatusPedido } from '@/lib/actions/pedidos';
 import type { StatusPedido } from '@pizzaorder/shared';
 import type { PedidoCozinha } from '@/types/cozinha';
 import { PedidoCard } from '@/components/PedidoCard';
-import { AceitarDialog } from '@/components/AceitarDialog';
 
 const FALLBACK_REFRESH_MS = 45_000;
 const TITULO_PADRAO = 'PizzaOrder Cozinha';
 const SEGURAR_MS = 250;
 const TOLERANCIA_SCROLL_PX = 12;
 
-type ColunaAlvo = 'pendente' | 'em_preparo' | 'prontos';
+type ColunaAlvo = 'fila' | 'em_preparo' | 'prontas';
 
 interface DragState {
   pedido: PedidoCozinha;
@@ -48,9 +48,9 @@ interface Props {
 }
 
 function colunaDoStatus(status: StatusPedido): ColunaAlvo {
-  if (status === 'pendente') return 'pendente';
+  if (status === 'aceito') return 'fila';
   if (status === 'em_preparo') return 'em_preparo';
-  return 'prontos';
+  return 'prontas';
 }
 
 function colunaEm(x: number, y: number): ColunaAlvo | null {
@@ -66,19 +66,18 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
   const [somAtivo, setSomAtivo] = useState(false);
   const [turnoIniciado, setTurnoIniciado] = useState(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const pendentesAnterioresRef = useRef<Set<string> | null>(null);
+  const filaAnteriorRef = useRef<Set<string> | null>(null);
 
   // ------- arrastar e soltar -------
   const [drag, setDrag] = useState<DragState | null>(null);
-  const [aceitarDrop, setAceitarDrop] = useState<PedidoCozinha | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const avisoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [pendingDrop, startDrop] = useTransition();
+  const [, startDrop] = useTransition();
 
   const pedidos = pedidosIniciais;
-  const novos = pedidos.filter((p) => p.status === 'pendente');
+  const fila = pedidos.filter((p) => p.status === 'aceito');
   const emPreparo = pedidos.filter((p) => p.status === 'em_preparo');
-  const prontos = pedidos.filter((p) => p.status === 'pronto' || p.status === 'saiu_para_entrega');
+  const prontas = pedidos.filter((p) => p.status === 'pronto');
 
   // ------- Realtime + fallback de polling -------
   useEffect(() => {
@@ -141,15 +140,15 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
     };
   }, [pizzariaId, router]);
 
-  // ------- Alerta de pedido novo (som + título da aba) -------
-  // Compara o conjunto de pendentes entre renders: funciona igual para
+  // ------- Alerta de pizza nova na fila (som + título da aba) -------
+  // Compara o conjunto de aceitos entre renders: funciona igual para
   // realtime e polling, sem depender do payload do evento.
   useEffect(() => {
-    const ids = new Set(novos.map((p) => p.id));
-    const anteriores = pendentesAnterioresRef.current;
-    pendentesAnterioresRef.current = ids;
+    const ids = new Set(fila.map((p) => p.id));
+    const anteriores = filaAnteriorRef.current;
+    filaAnteriorRef.current = ids;
 
-    document.title = novos.length > 0 ? `(${novos.length}) Pedidos novos!` : TITULO_PADRAO;
+    document.title = fila.length > 0 ? `(${fila.length}) Pizzas na fila!` : TITULO_PADRAO;
 
     if (anteriores === null) return; // primeiro render: não alertar o que já estava lá
     const chegouNovo = [...ids].some((id) => !anteriores.has(id));
@@ -158,7 +157,7 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
     return () => {
       document.title = TITULO_PADRAO;
     };
-  }, [novos, somAtivo]);
+  }, [fila, somAtivo]);
 
   const iniciarTurno = () => {
     // o clique é o gesto que desbloqueia o áudio no browser
@@ -177,39 +176,29 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
     avisoTimerRef.current = setTimeout(() => setAviso(null), 3500);
   };
 
-  const executar = (
-    pedido: PedidoCozinha,
-    novoStatus: StatusPedido,
-    extras?: { minutosEstimados?: number }
-  ) => {
+  const executar = (pedido: PedidoCozinha, novoStatus: StatusPedido) => {
     startDrop(async () => {
-      const r = await atualizarStatusPedido({
-        slug,
-        pedidoId: pedido.id,
-        novoStatus,
-        ...extras,
-      });
+      const r = await atualizarStatusPedido({ slug, pedidoId: pedido.id, novoStatus });
       if (r.erro) avisar(r.erro);
-      else setAceitarDrop(null);
     });
   };
 
   const soltar = (pedido: PedidoCozinha, alvo: ColunaAlvo | null) => {
     if (!alvo || alvo === colunaDoStatus(pedido.status)) return;
 
-    if (pedido.status === 'pendente' && alvo === 'em_preparo') {
-      setAceitarDrop(pedido); // aceite exige a previsão em minutos
+    if (pedido.status === 'aceito' && alvo === 'em_preparo') {
+      executar(pedido, 'em_preparo');
       return;
     }
-    if (pedido.status === 'em_preparo' && alvo === 'prontos') {
+    if (pedido.status === 'em_preparo' && alvo === 'prontas') {
       executar(pedido, 'pronto');
       return;
     }
-    if (pedido.status === 'pendente' && alvo === 'prontos') {
-      avisar('Aceite o pedido primeiro — arraste para "Em preparo".');
+    if (pedido.status === 'aceito' && alvo === 'prontas') {
+      avisar('Comece o preparo primeiro — arraste para "Cozinhando".');
       return;
     }
-    avisar('O pedido só anda para a frente. Para desfazer, use "Cancelar".');
+    avisar('O pedido só anda para a frente.');
   };
 
   // ------- segurar e arrastar (pointer events, mouse + toque) -------
@@ -277,8 +266,8 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
   // enquanto arrasta, qual coluna é destino válido deste pedido?
   const conviteValido = (coluna: ColunaAlvo): boolean => {
     if (!drag) return false;
-    if (drag.pedido.status === 'pendente') return coluna === 'em_preparo';
-    if (drag.pedido.status === 'em_preparo') return coluna === 'prontos';
+    if (drag.pedido.status === 'aceito') return coluna === 'em_preparo';
+    if (drag.pedido.status === 'em_preparo') return coluna === 'prontas';
     return false;
   };
 
@@ -312,17 +301,17 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
         <Coluna
-          titulo="Novos"
-          coluna="pendente"
-          qtd={novos.length}
-          destaque={novos.length > 0}
-          convite={conviteValido('pendente')}
-          sobre={drag?.alvo === 'pendente' && conviteValido('pendente')}
+          titulo="Fila"
+          coluna="fila"
+          qtd={fila.length}
+          destaque={fila.length > 0}
+          convite={conviteValido('fila')}
+          sobre={drag?.alvo === 'fila' && conviteValido('fila')}
         >
-          {renderCards(novos)}
+          {renderCards(fila)}
         </Coluna>
         <Coluna
-          titulo="Em preparo"
+          titulo="Cozinhando"
           coluna="em_preparo"
           qtd={emPreparo.length}
           convite={conviteValido('em_preparo')}
@@ -331,13 +320,13 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
           {renderCards(emPreparo)}
         </Coluna>
         <Coluna
-          titulo="Prontos & em rota"
-          coluna="prontos"
-          qtd={prontos.length}
-          convite={conviteValido('prontos')}
-          sobre={drag?.alvo === 'prontos' && conviteValido('prontos')}
+          titulo="Prontas"
+          coluna="prontas"
+          qtd={prontas.length}
+          convite={conviteValido('prontas')}
+          sobre={drag?.alvo === 'prontas' && conviteValido('prontas')}
         >
-          {renderCards(prontos)}
+          {renderCards(prontas)}
         </Coluna>
       </div>
 
@@ -361,16 +350,6 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
         </div>
       )}
 
-      {/* aceite via arrasto: mesma exigência de previsão do botão */}
-      {aceitarDrop && (
-        <AceitarDialog
-          numero={aceitarDrop.numero}
-          pending={pendingDrop}
-          onConfirmar={(minutos) => executar(aceitarDrop, 'em_preparo', { minutosEstimados: minutos })}
-          onFechar={() => setAceitarDrop(null)}
-        />
-      )}
-
       {/* overlay de início de turno: gesto que desbloqueia o áudio */}
       {!turnoIniciado && (
         <div className="fixed inset-0 z-50 bg-carbono/60 flex items-center justify-center p-4">
@@ -380,8 +359,8 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
             </span>
             <h2 className="font-display text-xl font-bold text-carbono">Iniciar o turno</h2>
             <p className="text-sm text-creme-muted">
-              Toque para ativar o alerta sonoro de novos pedidos (o navegador exige um
-              toque antes de permitir som).
+              Toque para ativar o alerta sonoro de novas pizzas na fila (o navegador
+              exige um toque antes de permitir som).
             </p>
             <button
               type="button"

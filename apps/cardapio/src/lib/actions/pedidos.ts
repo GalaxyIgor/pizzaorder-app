@@ -7,6 +7,7 @@
 // Sucesso => redirect para a página do pedido (?novo=1 limpa o carrinho lá).
 
 import { redirect } from 'next/navigation';
+import { estaAberto } from '@pizzaorder/shared';
 import { createClient } from '@/lib/supabase/server';
 import { supabase as admin } from '@/lib/supabase';
 import { arredondar, calcularFrete, calcularTaxaServico } from '@/lib/frete';
@@ -89,7 +90,7 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
   const { data: pizzaria, error: errPizzaria } = await admin
     .from('pizzarias')
     .select(
-      'id, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_entrega, aceita_retirada, aceita_local, pedidos_pausados'
+      'id, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_entrega, aceita_retirada, aceita_local, pedidos_pausados, horario_funcionamento'
     )
     .eq('slug', input.slug)
     .eq('ativo', true)
@@ -99,6 +100,10 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
 
   if (pizzaria.pedidos_pausados) {
     return { erro: 'A pizzaria pausou novos pedidos no momento. Tente novamente mais tarde.' };
+  }
+
+  if (!estaAberto(pizzaria.horario_funcionamento)) {
+    return { erro: 'A pizzaria está fechada agora. Confira o horário de funcionamento.' };
   }
 
   const aceita: Record<string, boolean> = {

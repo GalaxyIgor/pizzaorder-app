@@ -5,6 +5,10 @@
 // Mudança de status pela cozinha. Mesmo padrão do criarPedido do cardápio:
 // não existe policy de UPDATE em pedidos — a escrita é service-role, com
 // exigirStaff + máquina de estados (TRANSICOES_STATUS) validando tudo aqui.
+//
+// A cozinha é produção pura: só move a pizza da fila para "cozinhando"
+// (aceito -> em_preparo) e avisa que ficou pronta (em_preparo -> pronto).
+// Aceite, cancelamento e entrega são da gestão (apps/gestao).
 
 import { revalidatePath } from 'next/cache';
 import { TRANSICOES_STATUS, type StatusPedido } from '@pizzaorder/shared';
@@ -19,11 +23,13 @@ export interface AtualizarStatusInput {
   slug: string;
   pedidoId: string;
   novoStatus: StatusPedido;
-  /** Obrigatório ao aceitar (pendente -> em_preparo): grava previsao_pronto_em. */
-  minutosEstimados?: number;
-  /** Obrigatório ao cancelar/recusar. Uso interno — o cliente vê só "Cancelado". */
-  motivo?: string;
 }
+
+/** Transições que a COZINHA pode fazer (subconjunto de TRANSICOES_STATUS). */
+const TRANSICOES_COZINHA: Partial<Record<StatusPedido, StatusPedido[]>> = {
+  aceito: ['em_preparo'],
+  em_preparo: ['pronto'],
+};
 
 export async function atualizarStatusPedido(
   input: AtualizarStatusInput
@@ -44,38 +50,13 @@ export async function atualizarStatusPedido(
   if (!TRANSICOES_STATUS[statusAtual]?.includes(input.novoStatus)) {
     return { erro: `O pedido já está "${statusAtual}" — atualize o painel.` };
   }
-  if (input.novoStatus === 'saiu_para_entrega' && pedido.modalidade !== 'entrega') {
-    return { erro: 'Esse pedido não é de entrega.' };
-  }
-  // Regra de produto: quem confirma a entrega é a gestão, não a cozinha
-  // (a transição existe em TRANSICOES_STATUS para o futuro app de gestão).
-  if (
-    input.novoStatus === 'concluido' &&
-    pedido.modalidade === 'entrega' &&
-    statusAtual === 'saiu_para_entrega'
-  ) {
-    return { erro: 'A entrega é confirmada pela gestão, não pela cozinha.' };
-  }
-
-  const mudancas: Record<string, unknown> = { status: input.novoStatus };
-
-  if (input.novoStatus === 'em_preparo') {
-    const minutos = Math.round(input.minutosEstimados ?? 0);
-    if (!minutos || minutos < 1 || minutos > 240) {
-      return { erro: 'Informe a previsão em minutos (1 a 240).' };
-    }
-    mudancas.previsao_pronto_em = new Date(Date.now() + minutos * 60_000).toISOString();
-  }
-
-  if (input.novoStatus === 'cancelado') {
-    const motivo = input.motivo?.trim();
-    if (!motivo) return { erro: 'Informe o motivo do cancelamento.' };
-    mudancas.motivo_cancelamento = motivo;
+  if (!TRANSICOES_COZINHA[statusAtual]?.includes(input.novoStatus)) {
+    return { erro: 'Essa mudança é feita pela gestão, não pela cozinha.' };
   }
 
   const { error } = await admin
     .from('pedidos')
-    .update(mudancas)
+    .update({ status: input.novoStatus })
     .eq('id', pedido.id)
     // condição de corrida: outra tela pode ter mudado o status nesse meio tempo
     .eq('status', statusAtual);

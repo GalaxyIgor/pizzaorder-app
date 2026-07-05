@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server';
 import { exigirStaff } from '@/lib/staff';
 import { HeaderCozinha } from '@/components/HeaderCozinha';
 import { PainelPedidos } from '@/components/PainelPedidos';
-import { SELECT_PEDIDO_COZINHA, STATUS_ATIVOS, type PedidoCozinha } from '@/types/cozinha';
+import { SELECT_PEDIDO_COZINHA, STATUS_COZINHA, type PedidoCozinha } from '@/types/cozinha';
 
 export default async function PainelPage({
   params,
@@ -23,7 +23,7 @@ export default async function PainelPage({
     .from('pedidos')
     .select(SELECT_PEDIDO_COZINHA)
     .eq('pizzaria_id', pizzaria.id)
-    .in('status', STATUS_ATIVOS)
+    .in('status', STATUS_COZINHA)
     .order('criado_em', { ascending: true });
 
   return (

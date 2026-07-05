@@ -2,11 +2,17 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
+import { useMemo } from 'react';
+import { statusHorario } from '@pizzaorder/shared';
 import { useCardapio } from '@/contexts/CardapioContext';
+import { AccountMenu } from '@/components/layout/AccountMenu';
 
 export function Header() {
   const { pizzaria } = useCardapio();
+
+  const statusAtual = useMemo(() => {
+    return statusHorario(pizzaria.horario_funcionamento);
+  }, [pizzaria.horario_funcionamento]);
 
   return (
     <header className="py-6 border-b border-borda-suave flex items-center gap-3">
@@ -23,15 +29,13 @@ export function Header() {
           {pizzaria.nome}
         </h1>
         <p className="text-sm text-creme-muted mt-1">
-          <span className="text-manjericao font-bold mr-1">●</span> Aberto agora
+          <span className={`font-bold mr-1 ${statusAtual.aberto ? 'text-manjericao' : 'text-pomodoro'}`}>
+            {statusAtual.aberto ? '●' : '●'}
+          </span>
+          {statusAtual.aberto ? 'Aberto' : 'Fechado'} • {statusAtual.horarios}
         </p>
       </div>
-      <Link
-        href={`/${pizzaria.slug}/conta/pedidos`}
-        className="text-xs font-semibold text-creme-muted hover:text-carbono border border-borda-suave rounded-full px-3 py-2 transition-colors flex-shrink-0"
-      >
-        🧾 Meus pedidos
-      </Link>
+      <AccountMenu />
     </header>
   );
 }

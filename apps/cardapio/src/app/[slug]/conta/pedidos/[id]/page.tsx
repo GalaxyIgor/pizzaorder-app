@@ -74,12 +74,14 @@ export default async function PedidoPage({
             })}
           </p>
         </div>
-        <StatusBadge status={detalhe.status} />
+        <StatusBadge status={detalhe.status} modalidade={detalhe.modalidade} />
       </header>
 
-      {/* Previsão informada pela cozinha ao aceitar o pedido */}
+      {/* Previsão informada pela gestão ao aceitar o pedido */}
       {detalhe.previsao_pronto_em &&
-        (detalhe.status === 'em_preparo' || detalhe.status === 'pronto') && (
+        (detalhe.status === 'aceito' ||
+          detalhe.status === 'em_preparo' ||
+          detalhe.status === 'pronto') && (
           <p className="mb-3 text-sm text-carbono bg-ouro/15 border border-ouro/40 rounded-lg p-3">
             Previsão de ficar pronto:{' '}
             <span className="font-semibold">

@@ -5,13 +5,19 @@
 // Barra fixa inferior: aparece só quando há itens e abre a sacola (CartDrawer).
 
 import { useState } from 'react';
+import { estaAberto } from '@pizzaorder/shared';
 import { useCart } from '@/contexts/CartContext';
+import { useCardapio } from '@/contexts/CardapioContext';
 import { formatarPreco } from '@/lib/cardapio';
 import { CartDrawer } from '@/components/carrinho/CartDrawer';
 
 export function CartFooter() {
   const { totalItems, totalPrice } = useCart();
+  const { pizzaria } = useCardapio();
   const [aberto, setAberto] = useState(false);
+
+  const podeComprar =
+    !pizzaria.pedidos_pausados && estaAberto(pizzaria.horario_funcionamento);
 
   return (
     <>
@@ -19,8 +25,20 @@ export function CartFooter() {
         <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-center z-40">
           <button
             type="button"
-            onClick={() => setAberto(true)}
-            className="bg-pomodoro hover:bg-pomodoro-hover text-white w-full sm:max-w-lg p-4 rounded-lg font-semibold text-sm flex justify-between items-center shadow-lg transition-all active:scale-[0.99] cursor-pointer"
+            onClick={() => podeComprar && setAberto(true)}
+            disabled={!podeComprar}
+            className={`w-full sm:max-w-lg p-4 rounded-lg font-semibold text-sm flex justify-between items-center shadow-lg transition-all active:scale-[0.99] ${
+              podeComprar
+                ? 'bg-pomodoro hover:bg-pomodoro-hover text-white cursor-pointer'
+                : 'bg-creme-muted/30 text-creme-muted cursor-not-allowed'
+            }`}
+            title={
+              !podeComprar
+                ? pizzaria.pedidos_pausados
+                  ? 'Pizzaria não está aceitando pedidos'
+                  : 'Pizzaria está fechada'
+                : ''
+            }
           >
             <span>Ver sacola ({totalItems} {totalItems === 1 ? 'item' : 'itens'})</span>
             <span>{formatarPreco(totalPrice)}</span>

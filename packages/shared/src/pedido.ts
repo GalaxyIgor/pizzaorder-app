@@ -8,12 +8,14 @@ import type { CartItem, CartItemAdicional, CartItemSabor } from './carrinho';
 
 export type Modalidade = 'entrega' | 'retirada' | 'local';
 
-// Vocabulário com aceite explícito (decidido em 2026-07-04, supabase/cozinha.sql):
-//   pendente -> em_preparo (cozinha aceita, com previsão) -> pronto
-//     -> saiu_para_entrega (só entrega) -> concluido
-//   cancelado: recusa da cozinha ou cancelamento, antes de concluido.
+// Vocabulário com a gestão como orquestradora (decidido em 2026-07-04,
+// supabase/cozinha.sql + supabase/gestao.sql):
+//   pendente -> aceito (gestão aceita, com previsão) -> em_preparo (cozinha pegou)
+//     -> pronto -> saiu_para_entrega (só entrega, gestão) -> concluido (gestão)
+//   cancelado: só a gestão, com motivo, antes de concluido.
 export type StatusPedido =
   | 'pendente'
+  | 'aceito'
   | 'em_preparo'
   | 'pronto'
   | 'saiu_para_entrega'
@@ -70,7 +72,7 @@ export interface PedidoResumo {
 }
 
 export interface PedidoDetalhe extends PedidoResumo {
-  /** Previsão de ficar pronto (gravada quando a cozinha aceita). */
+  /** Previsão de ficar pronto (gravada quando a gestão aceita). */
   previsao_pronto_em: string | null;
   nome_cliente: string;
   telefone_cliente: string;
@@ -108,6 +110,7 @@ export const MODALIDADE_LABEL: Record<Modalidade, string> = {
 
 export const STATUS_LABEL: Record<StatusPedido, string> = {
   pendente: 'Aguardando confirmação',
+  aceito: 'Na fila da cozinha',
   em_preparo: 'Em preparo',
   pronto: 'Pronto',
   saiu_para_entrega: 'Saiu para entrega',
@@ -116,12 +119,37 @@ export const STATUS_LABEL: Record<StatusPedido, string> = {
 };
 
 /**
+ * Rótulo simplificado para o CLIENTE (página "meus pedidos" do cardápio):
+ * aceito/em_preparo viram um único "Em preparo"; pronto/saiu viram
+ * "A caminho" (entrega) ou "Pronto para retirar" (retirada/local).
+ */
+export function statusLabelCliente(status: StatusPedido, modalidade: Modalidade): string {
+  switch (status) {
+    case 'pendente':
+      return 'Aguardando confirmação';
+    case 'aceito':
+    case 'em_preparo':
+      return 'Em preparo';
+    case 'pronto':
+    case 'saiu_para_entrega':
+      return modalidade === 'entrega' ? 'A caminho' : 'Pronto para retirar';
+    case 'concluido':
+      return modalidade === 'entrega' ? 'Entregue' : 'Concluído';
+    case 'cancelado':
+      return 'Cancelado';
+  }
+}
+
+/**
  * Máquina de estados do pedido — única fonte das transições permitidas
- * (a server action da cozinha valida contra ela).
+ * (as server actions da gestão e da cozinha validam contra ela).
+ * Gestão: pendente->aceito, pronto->saiu/concluido, saiu->concluido, *->cancelado.
+ * Cozinha: aceito->em_preparo, em_preparo->pronto (whitelist na action dela).
  * `saiu_para_entrega` só vale para modalidade `entrega` (validação extra na action).
  */
 export const TRANSICOES_STATUS: Record<StatusPedido, StatusPedido[]> = {
-  pendente: ['em_preparo', 'cancelado'],
+  pendente: ['aceito', 'cancelado'],
+  aceito: ['em_preparo', 'cancelado'],
   em_preparo: ['pronto', 'cancelado'],
   pronto: ['saiu_para_entrega', 'concluido', 'cancelado'],
   saiu_para_entrega: ['concluido', 'cancelado'],

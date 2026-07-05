@@ -76,7 +76,7 @@ export default async function MeusPedidosPage({
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-semibold text-sm text-carbono">Pedido #{pedido.numero}</span>
-                  <StatusBadge status={pedido.status} />
+                  <StatusBadge status={pedido.status} modalidade={pedido.modalidade} />
                 </div>
                 <div className="flex items-center justify-between gap-3 mt-2 text-xs text-creme-muted">
                   <span>

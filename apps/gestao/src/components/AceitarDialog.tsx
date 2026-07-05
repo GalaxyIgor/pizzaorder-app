@@ -3,7 +3,8 @@
 // src/components/AceitarDialog.tsx
 //
 // Aceitar pedido: escolher a previsão em minutos (presets + campo livre).
-// A action grava previsao_pronto_em = now() + minutos.
+// A action grava previsao_pronto_em = now() + minutos e o pedido entra na
+// fila da cozinha.
 
 import { useState } from 'react';
 

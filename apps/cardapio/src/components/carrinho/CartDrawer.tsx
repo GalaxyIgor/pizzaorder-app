@@ -8,7 +8,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
+import { estaAberto } from '@pizzaorder/shared';
 import { useCart } from '@/contexts/CartContext';
+import { useCardapio } from '@/contexts/CardapioContext';
 import { formatarPreco } from '@/lib/cardapio';
 
 interface CartDrawerProps {
@@ -18,10 +20,14 @@ interface CartDrawerProps {
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { items, totalItems, totalPrice, increment, decrement, remove, clear } = useCart();
+  const { pizzaria } = useCardapio();
   const [expandido, setExpandido] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
+
+  const podeComprar =
+    !pizzaria.pedidos_pausados && estaAberto(pizzaria.horario_funcionamento);
 
   if (!isOpen) return null;
 
@@ -181,8 +187,20 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </div>
               <button
                 type="button"
-                onClick={() => router.push(`/${slug}/checkout`)}
-                className="w-full bg-pomodoro hover:bg-pomodoro-hover text-white p-3 rounded-lg font-semibold transition-colors active:scale-[0.99]"
+                onClick={() => podeComprar && router.push(`/${slug}/checkout`)}
+                disabled={!podeComprar}
+                className={`w-full p-3 rounded-lg font-semibold transition-colors active:scale-[0.99] ${
+                  podeComprar
+                    ? 'bg-pomodoro hover:bg-pomodoro-hover text-white cursor-pointer'
+                    : 'bg-creme-muted/30 text-creme-muted cursor-not-allowed'
+                }`}
+                title={
+                  !podeComprar
+                    ? pizzaria.pedidos_pausados
+                      ? 'Pizzaria não está aceitando pedidos'
+                      : 'Pizzaria está fechada'
+                    : ''
+                }
               >
                 Finalizar pedido
               </button>

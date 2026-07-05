@@ -14,44 +14,28 @@ export type Tamanho = 'P' | 'M' | 'G' | 'GG' | '600ml' | '2L' | string;
 // PIZZARIA (configuração do tenant)
 // ============================================================
 
-export type EstrategiaMeiaMeia = 'maior' | 'menor' | 'media' | 'fixo';
+// Tipos de configuração movidos para @pizzaorder/shared (src/pizzaria.ts) —
+// a gestão edita os mesmos shapes que o cardápio calcula. Re-export mantém
+// os imports existentes deste arquivo funcionando.
+export type {
+  EstrategiaMeiaMeia,
+  ConfigMeiaMeia,
+  TipoFrete,
+  FaixaKm,
+  BairroFrete,
+  ConfigFrete,
+  TipoTaxaServico,
+  ConfigTaxaServico,
+  FaixaHorario,
+  HorarioFuncionamento,
+} from '@pizzaorder/shared';
 
-export interface ConfigMeiaMeia {
-  estrategia: EstrategiaMeiaMeia;
-  precoFixo?: number;
-}
-
-export type TipoFrete = 'faixas_km' | 'preco_por_km' | 'por_bairro' | 'fixo' | 'gratis';
-
-export interface FaixaKm {
-  kmInicio: number;
-  kmFim: number;
-  valor: number;
-  entrega: boolean;
-}
-
-export interface BairroFrete {
-  bairro: string;
-  valor: number;
-  entrega: boolean;
-}
-
-export interface ConfigFrete {
-  tipo: TipoFrete;
-  faixas?: FaixaKm[];
-  valorPorKm?: number;
-  minimoFrete?: number;
-  bairros?: BairroFrete[];
-  valorFixo?: number;
-  gratisPedidoAcimaDe?: number;
-}
-
-export type TipoTaxaServico = 'percentual' | 'fixo';
-
-export interface ConfigTaxaServico {
-  tipo: TipoTaxaServico;
-  valor: number;
-}
+import type {
+  ConfigFrete,
+  ConfigMeiaMeia,
+  ConfigTaxaServico,
+  HorarioFuncionamento,
+} from '@pizzaorder/shared';
 
 export interface Pizzaria {
   id: string;
@@ -66,8 +50,10 @@ export interface Pizzaria {
   aceita_retirada: boolean;
   aceita_entrega: boolean;
   aceita_local: boolean;
-  /** Cozinha pausou novos pedidos (o cardápio avisa e o checkout bloqueia). */
+  /** Staff pausou novos pedidos (o cardápio avisa e o checkout bloqueia). */
   pedidos_pausados: boolean;
+  /** Horário de funcionamento (null = sempre aberto). Ver estaAberto() no shared. */
+  horario_funcionamento: HorarioFuncionamento | null;
 }
 
 // ============================================================

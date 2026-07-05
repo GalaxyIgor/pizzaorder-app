@@ -10,6 +10,7 @@
     "dev": "npm run dev --workspace apps/cardapio",
     "dev:cardapio": "npm run dev --workspace apps/cardapio",
     "dev:cozinha": "npm run dev --workspace apps/cozinha",
+    "dev:gestao": "npm run dev --workspace apps/gestao",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present"
   }

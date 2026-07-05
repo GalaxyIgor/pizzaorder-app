@@ -2,20 +2,14 @@
 
 // src/components/PedidoCard.tsx
 //
-// Card de pedido (touch-friendly). As ações mudam com o status e chamam a
-// Server Action atualizarStatusPedido; aceite e recusa abrem diálogos.
+// Card de pedido (touch-friendly), focado em PRODUÇÃO: o que preparar e o
+// prazo definido pela gestão no aceite. Valores, endereço e cancelamento são
+// assunto da gestão (o endereço completo sai na comanda).
 
 import { useState, useTransition } from 'react';
-import {
-  formatarPreco,
-  MODALIDADE_LABEL,
-  METODO_PAGAMENTO_LABEL,
-  type StatusPedido,
-} from '@pizzaorder/shared';
+import { MODALIDADE_LABEL, type StatusPedido } from '@pizzaorder/shared';
 import { atualizarStatusPedido } from '@/lib/actions/pedidos';
 import type { PedidoCozinha } from '@/types/cozinha';
-import { AceitarDialog } from '@/components/AceitarDialog';
-import { RecusarDialog } from '@/components/RecusarDialog';
 
 interface Props {
   slug: string;
@@ -37,26 +31,19 @@ function horaLocal(iso: string): string {
 }
 
 export function PedidoCard({ slug, pedido, agora }: Props) {
-  const [dialogo, setDialogo] = useState<'aceitar' | 'recusar' | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const mudar = (novoStatus: StatusPedido, extras?: { minutosEstimados?: number; motivo?: string }) => {
+  const mudar = (novoStatus: StatusPedido) => {
     setErro(null);
     startTransition(async () => {
-      const r = await atualizarStatusPedido({
-        slug,
-        pedidoId: pedido.id,
-        novoStatus,
-        ...extras,
-      });
+      const r = await atualizarStatusPedido({ slug, pedidoId: pedido.id, novoStatus });
       if (r.erro) setErro(r.erro);
-      else setDialogo(null);
     });
   };
 
   const atrasado =
-    pedido.status === 'em_preparo' &&
+    (pedido.status === 'aceito' || pedido.status === 'em_preparo') &&
     pedido.previsao_pronto_em != null &&
     agora > new Date(pedido.previsao_pronto_em).getTime();
 
@@ -79,9 +66,22 @@ export function PedidoCard({ slug, pedido, agora }: Props) {
           </p>
         </span>
       </header>
-      <p className="text-xs font-semibold text-carbono bg-borda-suave/60 rounded-full px-2.5 py-1 inline-block">
-        {MODALIDADE_LABEL[pedido.modalidade]}
-      </p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <p className="text-xs font-semibold text-carbono bg-borda-suave/60 rounded-full px-2.5 py-1 inline-block">
+          {MODALIDADE_LABEL[pedido.modalidade]}
+        </p>
+        {/* prazo prometido ao cliente (a gestão definiu no aceite) */}
+        {pedido.previsao_pronto_em && pedido.status !== 'pronto' && (
+          <p
+            className={`text-xs font-semibold rounded-full px-2.5 py-1 inline-block ${
+              atrasado ? 'bg-pomodoro text-white' : 'bg-ouro/20 text-carbono'
+            }`}
+          >
+            ⏱ até {horaLocal(pedido.previsao_pronto_em)}
+            {atrasado ? ' — atrasado' : ''}
+          </p>
+        )}
+      </div>
 
       {/* itens */}
       <ul className="space-y-1.5 text-sm border-t border-borda-suave pt-2">
@@ -112,35 +112,9 @@ export function PedidoCard({ slug, pedido, agora }: Props) {
         </p>
       )}
 
-      {/* cliente / entrega / pagamento */}
-      <div className="text-xs text-creme-muted space-y-0.5 border-t border-borda-suave pt-2">
-        <p>
-          {pedido.nome_cliente} · {pedido.telefone_cliente}
-        </p>
-        {pedido.endereco_entrega && (
-          <p>
-            {pedido.endereco_entrega.rua}, {pedido.endereco_entrega.numero}
-            {pedido.endereco_entrega.complemento ? ` — ${pedido.endereco_entrega.complemento}` : ''} ·{' '}
-            {pedido.endereco_entrega.bairro}
-          </p>
-        )}
-        <p>
-          <span className="font-semibold text-carbono">{formatarPreco(pedido.total)}</span>{' '}
-          {pedido.forma_pagamento === 'online'
-            ? '· pago online'
-            : `· pagar na ${pedido.modalidade === 'entrega' ? 'entrega' : 'retirada'}${
-                pedido.metodo_pagamento_local
-                  ? ` (${METODO_PAGAMENTO_LABEL[pedido.metodo_pagamento_local]})`
-                  : ''
-              }`}
-        </p>
-        {pedido.status === 'em_preparo' && pedido.previsao_pronto_em && (
-          <p className={atrasado ? 'text-pomodoro font-semibold' : ''}>
-            Previsão: {horaLocal(pedido.previsao_pronto_em)}
-            {atrasado ? ' — atrasado' : ''}
-          </p>
-        )}
-      </div>
+      <p className="text-xs text-creme-muted border-t border-borda-suave pt-2">
+        {pedido.nome_cliente}
+      </p>
 
       {erro && (
         <p role="alert" className="text-xs text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-2">
@@ -148,71 +122,24 @@ export function PedidoCard({ slug, pedido, agora }: Props) {
         </p>
       )}
 
-      {/* ações por status */}
+      {/* ações por status (só as da cozinha) */}
       <div className="flex gap-2 pt-1">
-        {pedido.status === 'pendente' && (
-          <>
-            <BotaoPrimario onClick={() => setDialogo('aceitar')} disabled={pending}>
-              Aceitar
-            </BotaoPrimario>
-            <BotaoSecundario onClick={() => setDialogo('recusar')} disabled={pending}>
-              Recusar
-            </BotaoSecundario>
-          </>
+        {pedido.status === 'aceito' && (
+          <BotaoPrimario onClick={() => mudar('em_preparo')} disabled={pending}>
+            {pending ? '...' : 'Começar preparo'}
+          </BotaoPrimario>
         )}
         {pedido.status === 'em_preparo' && (
-          <>
-            <BotaoPrimario onClick={() => mudar('pronto')} disabled={pending}>
-              {pending ? '...' : 'Pronto'}
-            </BotaoPrimario>
-            <BotaoSecundario onClick={() => setDialogo('recusar')} disabled={pending}>
-              Cancelar
-            </BotaoSecundario>
-          </>
+          <BotaoPrimario onClick={() => mudar('pronto')} disabled={pending}>
+            {pending ? '...' : 'Pronta'}
+          </BotaoPrimario>
         )}
         {pedido.status === 'pronto' && (
-          <>
-            <BotaoPrimario
-              onClick={() => mudar(pedido.modalidade === 'entrega' ? 'saiu_para_entrega' : 'concluido')}
-              disabled={pending}
-            >
-              {pending ? '...' : pedido.modalidade === 'entrega' ? 'Saiu para entrega' : 'Concluir'}
-            </BotaoPrimario>
-            <BotaoSecundario onClick={() => setDialogo('recusar')} disabled={pending}>
-              Cancelar
-            </BotaoSecundario>
-          </>
-        )}
-        {pedido.status === 'saiu_para_entrega' && (
-          <>
-            {/* quem confirma a entrega é a gestão — a cozinha só acompanha */}
-            <p className="flex-1 text-xs text-creme-muted self-center">
-              🛵 Em rota — a gestão confirma a entrega.
-            </p>
-            <BotaoSecundario onClick={() => setDialogo('recusar')} disabled={pending}>
-              Cancelar
-            </BotaoSecundario>
-          </>
+          <p className="flex-1 text-xs text-creme-muted self-center">
+            ✅ Pronta — a gestão cuida da {pedido.modalidade === 'entrega' ? 'entrega' : 'retirada'}.
+          </p>
         )}
       </div>
-
-      {dialogo === 'aceitar' && (
-        <AceitarDialog
-          numero={pedido.numero}
-          pending={pending}
-          onConfirmar={(minutos) => mudar('em_preparo', { minutosEstimados: minutos })}
-          onFechar={() => setDialogo(null)}
-        />
-      )}
-      {dialogo === 'recusar' && (
-        <RecusarDialog
-          numero={pedido.numero}
-          recusa={pedido.status === 'pendente'}
-          pending={pending}
-          onConfirmar={(motivo) => mudar('cancelado', { motivo })}
-          onFechar={() => setDialogo(null)}
-        />
-      )}
     </article>
   );
 }
@@ -223,16 +150,6 @@ function BotaoPrimario(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
       type="button"
       {...props}
       className="flex-1 bg-manjericao hover:opacity-90 disabled:opacity-60 text-white p-3 rounded-lg font-semibold text-sm transition-all active:scale-[0.99]"
-    />
-  );
-}
-
-function BotaoSecundario(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button
-      type="button"
-      {...props}
-      className="px-4 border-2 border-pomodoro/30 text-pomodoro hover:bg-pomodoro/5 disabled:opacity-60 rounded-lg font-semibold text-sm transition-colors"
     />
   );
 }
