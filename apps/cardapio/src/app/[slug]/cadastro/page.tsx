@@ -2,12 +2,16 @@
 
 // src/app/[slug]/cadastro/page.tsx
 //
-// Criação de conta (Supabase Auth email+senha + linha em `perfis`).
+// Criação de conta. Caminho principal: Google (sem senha, sem confirmação de
+// email — nome e telefone completam no checkout). O formulário email+senha
+// segue como alternativa (Supabase Auth + linha em `perfis`).
 
 import { Suspense, useActionState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { signUp, type AuthState } from '@/lib/actions/auth';
+import { formatarTelefone } from '@/lib/telefone';
+import { GoogleButton } from '@/components/auth/GoogleButton';
 import { PasswordInput } from '@/components/auth/PasswordInput';
 
 const estadoInicial: AuthState = {};
@@ -35,8 +39,17 @@ function CadastroForm() {
       <div className="bg-white border border-borda-suave rounded-2xl p-6 shadow-sm">
         <h1 className="font-display text-2xl font-bold text-carbono mb-1">Criar conta</h1>
         <p className="text-sm text-creme-muted mb-6">
-          Com a conta você finaliza pedidos e acompanha o status de cada um.
+          Com a conta você finaliza pedidos e acompanha o status de cada um. O
+          jeito mais rápido é com o Google — sem senha nova para decorar.
         </p>
+
+        <GoogleButton next={redirect || `/${slug}`} />
+
+        <div className="flex items-center gap-3 my-5">
+          <span className="h-px flex-1 bg-borda-suave" aria-hidden="true" />
+          <span className="text-xs text-creme-muted">ou com email e senha</span>
+          <span className="h-px flex-1 bg-borda-suave" aria-hidden="true" />
+        </div>
 
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="slug" value={slug} />
@@ -59,7 +72,9 @@ function CadastroForm() {
               type="tel"
               required
               autoComplete="tel"
+              inputMode="numeric"
               placeholder="(11) 99999-9999"
+              onChange={(e) => (e.currentTarget.value = formatarTelefone(e.currentTarget.value))}
               className={inputClass}
             />
           </div>

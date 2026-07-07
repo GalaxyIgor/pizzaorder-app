@@ -8,6 +8,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { supabase as supabaseAdmin } from '@/lib/supabase';
+import { telefoneValido } from '@/lib/telefone';
 
 export interface AuthState {
   erro?: string;
@@ -46,6 +47,9 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
 
   if (nome.length < 2) return { erro: 'Informe seu nome.' };
   if (!telefone) return { erro: 'Informe seu telefone (a pizzaria usa para contato).' };
+  if (!telefoneValido(telefone)) {
+    return { erro: 'Informe um telefone válido com DDD, ex.: (11) 99999-9999.' };
+  }
   if (!email) return { erro: 'Informe seu email.' };
   if (senha.length < 6) return { erro: 'A senha precisa de pelo menos 6 caracteres.' };
 
@@ -73,6 +77,10 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
       .from('perfis')
       .upsert({ id: data.user.id, nome, telefone });
     if (errPerfil) {
+      // uq_perfis_telefone: um telefone identifica uma única conta
+      if (errPerfil.code === '23505') {
+        return { erro: 'Já existe uma conta com esse telefone. Entre nela (email/senha ou Google).' };
+      }
       console.error('[signUp] insert perfis:', errPerfil.code, errPerfil.message);
       return { erro: 'Conta criada, mas houve um erro ao salvar o perfil.' };
     }

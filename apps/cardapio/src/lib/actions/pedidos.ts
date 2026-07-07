@@ -11,6 +11,7 @@ import { estaAberto } from '@pizzaorder/shared';
 import { createClient } from '@/lib/supabase/server';
 import { supabase as admin } from '@/lib/supabase';
 import { arredondar, calcularFrete, calcularTaxaServico } from '@/lib/frete';
+import { telefoneValido } from '@/lib/telefone';
 import type { ConfigFrete, ConfigMeiaMeia, ConfigTaxaServico } from '@/types/cardapio';
 import type { CartItem } from '@/types/carrinho';
 import type { CriarPedidoInput } from '@/types/pedido';
@@ -77,6 +78,10 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
   const nome = input.nome?.trim();
   const telefone = input.telefone?.trim();
   if (!nome || !telefone) return { erro: 'Informe nome e telefone.' };
+  // WhatsApp é o canal de contato do pedido — número errado = pedido mudo
+  if (!telefoneValido(telefone)) {
+    return { erro: 'Informe um telefone válido com DDD, ex.: (11) 99999-9999.' };
+  }
   if (!input.itens || input.itens.length === 0) return { erro: 'Sua sacola está vazia.' };
 
   if (input.formaPagamento === 'online') {
@@ -335,7 +340,20 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
     return { erro: 'Erro ao registrar os itens do pedido. Tente novamente.' };
   }
 
-  // 8. Extras best-effort: salvar endereço no caderninho do cliente
+  // 8. Extras best-effort (não derrubam o pedido já gravado)
+
+  // Mantém o perfil com o último nome/telefone: quem entra pelo Google não
+  // passa pelo cadastro, então é AQUI que o telefone chega ao perfil.
+  // Telefone é único (uq_perfis_telefone) — conflito só loga; o contato do
+  // pedido em si já está no snapshot nome_cliente/telefone_cliente.
+  const { error: errPerfil } = await admin
+    .from('perfis')
+    .upsert({ id: user.id, nome, telefone, atualizado_em: new Date().toISOString() });
+  if (errPerfil) {
+    console.error('[criarPedido] upsert perfis:', errPerfil.code, errPerfil.message);
+  }
+
+  // Salvar endereço no caderninho do cliente
   if (input.salvarEndereco && endereco) {
     await admin.from('enderecos_cliente').insert({
       cliente_id: user.id,

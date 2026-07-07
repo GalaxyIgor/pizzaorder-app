@@ -2,13 +2,15 @@
 
 // src/app/[slug]/entrar/page.tsx
 //
-// Login (email+senha). Aceita ?redirect= para voltar aonde o cliente estava
+// Login: Google (caminho principal) ou email+senha (contas antigas).
+// Aceita ?redirect= para voltar aonde o cliente estava
 // (ex.: /[slug]/checkout, injetado pelo src/proxy.ts).
 
 import { Suspense, useActionState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { signIn, type AuthState } from '@/lib/actions/auth';
+import { GoogleButton } from '@/components/auth/GoogleButton';
 import { PasswordInput } from '@/components/auth/PasswordInput';
 
 const estadoInicial: AuthState = {};
@@ -26,6 +28,7 @@ function EntrarForm() {
   const slug = params.slug as string;
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') ?? '';
+  const erroGoogle = searchParams.get('erro') === 'google';
   const [state, formAction, pending] = useActionState(signIn, estadoInicial);
 
   return (
@@ -33,8 +36,22 @@ function EntrarForm() {
       <div className="bg-white border border-borda-suave rounded-2xl p-6 shadow-sm">
         <h1 className="font-display text-2xl font-bold text-carbono mb-1">Entrar</h1>
         <p className="text-sm text-creme-muted mb-6">
-          Faça login para finalizar seu pedido e acompanhar o status.
+          Entre para finalizar seu pedido e acompanhar o status.
         </p>
+
+        {erroGoogle && (
+          <p role="alert" className="text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3 mb-4">
+            Não foi possível entrar com o Google. Tente novamente.
+          </p>
+        )}
+
+        <GoogleButton next={redirect || `/${slug}`} />
+
+        <div className="flex items-center gap-3 my-5">
+          <span className="h-px flex-1 bg-borda-suave" aria-hidden="true" />
+          <span className="text-xs text-creme-muted">ou com email e senha</span>
+          <span className="h-px flex-1 bg-borda-suave" aria-hidden="true" />
+        </div>
 
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="slug" value={slug} />

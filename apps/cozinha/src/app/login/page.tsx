@@ -2,14 +2,33 @@
 
 // src/app/login/page.tsx
 //
-// Login do staff (email+senha). Sem cadastro: contas são criadas pela gestão.
+// Login do staff: Google ou email+senha. Sem cadastro: o acesso vem do
+// vínculo em staff_pizzaria (criado pela gestão) — o /auth/callback e o
+// signIn recusam contas sem vínculo.
 
-import { useActionState } from 'react';
+import { Suspense, useActionState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { signIn, type AuthState } from '@/lib/actions/auth';
+import { GoogleButton } from '@/components/GoogleButton';
 
 const estadoInicial: AuthState = {};
 
+const ERRO_CALLBACK: Record<string, string> = {
+  'sem-acesso': 'Esta conta não tem acesso à cozinha. Fale com a gestão da pizzaria.',
+  google: 'Não foi possível entrar com o Google. Tente novamente.',
+};
+
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const erroCallback = ERRO_CALLBACK[searchParams.get('erro') ?? ''] ?? null;
   const [state, formAction, pending] = useActionState(signIn, estadoInicial);
 
   return (
@@ -22,6 +41,20 @@ export default function LoginPage() {
         <p className="text-sm text-creme-muted mb-6">
           Entre com a conta de staff da sua pizzaria.
         </p>
+
+        {erroCallback && (
+          <p role="alert" className="text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3 mb-4">
+            {erroCallback}
+          </p>
+        )}
+
+        <GoogleButton />
+
+        <div className="flex items-center gap-3 my-5">
+          <span className="h-px flex-1 bg-borda-suave" aria-hidden="true" />
+          <span className="text-xs text-creme-muted">ou com email e senha</span>
+          <span className="h-px flex-1 bg-borda-suave" aria-hidden="true" />
+        </div>
 
         <form action={formAction} className="space-y-4">
           <div>

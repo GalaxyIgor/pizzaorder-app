@@ -2,7 +2,8 @@
 //
 // Proxy (o antigo middleware, renomeado no Next 16):
 // 1. mantém a sessão Supabase fresca (refresh de token via cookies);
-// 2. gate otimista: tudo exceto /login exige usuário logado.
+// 2. gate otimista: tudo exceto /login e /auth/** exige usuário logado
+//    (/auth/callback chega SEM sessão — é ele que a cria no retorno do OAuth).
 //
 // Isso é só UX — pages e Server Actions revalidam via exigirStaff().
 
@@ -38,7 +39,7 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (!user && pathname !== '/login') {
+  if (!user && pathname !== '/login' && !pathname.startsWith('/auth/')) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.search = '';
