@@ -24,6 +24,7 @@ const TIPO_LABEL: Record<TipoCategoria, string> = {
   pizza: 'Pizza',
   bebida: 'Bebida',
   meia_meia: 'Meia-meia',
+  sobremesa: 'Sobremesa',
   outro: 'Outro',
 };
 

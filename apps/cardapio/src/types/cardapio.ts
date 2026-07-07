@@ -60,7 +60,7 @@ export interface Pizzaria {
 // CATEGORIA
 // ============================================================
 
-export type TipoCategoria = 'pizza' | 'bebida' | 'meia_meia' | 'outro';
+export type TipoCategoria = 'pizza' | 'bebida' | 'meia_meia' | 'sobremesa' | 'outro';
 
 export interface Categoria {
   id: string;
@@ -119,6 +119,21 @@ export interface ComboSugestao {
 }
 
 // ============================================================
+// COMBO DE PRODUTOS (ex.: pizza + bebida, preço fixo definido pelo tenant)
+// ============================================================
+
+export interface ComboProduto {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  imagem_url: string | null;
+  ordem: number;
+  produto1_id: string;
+  produto2_id: string;
+  preco: number;
+}
+
+// ============================================================
 // GRUPOS DE ADICIONAIS (borda, opcionais — configurável por tenant)
 // ============================================================
 
@@ -162,4 +177,5 @@ export interface CardapioResponse {
   destaques: Destaque[];
   gruposAdicionais: GrupoAdicional[];
   combos: ComboSugestao[];
+  comboProdutos: ComboProduto[];
 }

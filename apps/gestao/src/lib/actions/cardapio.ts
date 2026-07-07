@@ -59,7 +59,7 @@ async function grupoDaPizzaria(grupoId: string, pizzariaId: string): Promise<boo
 export interface CategoriaInput {
   id?: string;
   nome: string;
-  tipo: 'pizza' | 'bebida' | 'meia_meia' | 'outro';
+  tipo: 'pizza' | 'bebida' | 'meia_meia' | 'sobremesa' | 'outro';
   ativo: boolean;
 }
 
@@ -71,7 +71,7 @@ export async function salvarCategoria(
 
   const nome = input.nome?.trim();
   if (!nome) return { erro: 'Informe o nome da categoria.' };
-  if (!['pizza', 'bebida', 'meia_meia', 'outro'].includes(input.tipo)) {
+  if (!['pizza', 'bebida', 'meia_meia', 'sobremesa', 'outro'].includes(input.tipo)) {
     return { erro: 'Tipo de categoria inválido.' };
   }
 

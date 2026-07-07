@@ -100,6 +100,18 @@ export async function GET(
     return NextResponse.json({ error: 'Erro ao buscar combos' }, { status: 500 });
   }
 
+  // 7. Combos de produtos (ex.: pizza + bebida, preço fixo)
+  const { data: comboProdutos, error: errComboProdutos } = await supabase
+    .from('combos_produtos')
+    .select('id, nome, descricao, imagem_url, ordem, produto1_id, produto2_id, preco')
+    .eq('pizzaria_id', pizzaria.id)
+    .eq('ativo', true)
+    .order('ordem');
+
+  if (errComboProdutos) {
+    return NextResponse.json({ error: 'Erro ao buscar combos de produtos' }, { status: 500 });
+  }
+
   return NextResponse.json({
     pizzaria,
     categorias,
@@ -107,5 +119,6 @@ export async function GET(
     destaques,
     gruposAdicionais,
     combos,
+    comboProdutos,
   });
 }

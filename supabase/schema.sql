@@ -10,6 +10,7 @@
 drop table if exists precos_opcao_por_tamanho cascade;
 drop table if exists opcoes_adicionais cascade;
 drop table if exists grupos_adicionais cascade;
+drop table if exists combos_produtos cascade;
 drop table if exists combos_meia_meia cascade;
 drop table if exists destaques cascade;
 drop table if exists variacoes_produto cascade;
@@ -43,7 +44,7 @@ create table categorias (
   id uuid primary key default gen_random_uuid(),
   pizzaria_id uuid not null references pizzarias(id) on delete cascade,
   nome text not null,
-  tipo text not null check (tipo in ('pizza', 'bebida', 'meia_meia', 'outro')),
+  tipo text not null check (tipo in ('pizza', 'bebida', 'meia_meia', 'sobremesa', 'outro')),
   ordem int not null default 0,
   ativo boolean not null default true
 );
@@ -92,6 +93,23 @@ create table combos_meia_meia (
   nome text not null,
   descricao text,
   imagem_url text,
+  ordem int not null default 0,
+  ativo boolean not null default true,
+  criado_em timestamptz not null default now()
+);
+
+-- ============================================================
+-- COMBOS DE PRODUTOS (ex.: pizza + bebida, preço fixo definido pelo tenant)
+-- ============================================================
+create table combos_produtos (
+  id uuid primary key default gen_random_uuid(),
+  pizzaria_id uuid not null references pizzarias(id) on delete cascade,
+  produto1_id uuid not null references produtos(id) on delete cascade,
+  produto2_id uuid not null references produtos(id) on delete cascade,
+  nome text not null,
+  descricao text,
+  imagem_url text,
+  preco numeric(10,2) not null,
   ordem int not null default 0,
   ativo boolean not null default true,
   criado_em timestamptz not null default now()

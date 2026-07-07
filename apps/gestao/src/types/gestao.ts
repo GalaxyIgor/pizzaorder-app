@@ -13,7 +13,7 @@ export { STATUS_ATIVOS, SELECT_PEDIDO_PAINEL } from '@pizzaorder/shared';
 // Linhas do CRUD do cardápio (leitura via service-role — inclui inativos)
 // ============================================================
 
-export type TipoCategoria = 'pizza' | 'bebida' | 'meia_meia' | 'outro';
+export type TipoCategoria = 'pizza' | 'bebida' | 'meia_meia' | 'sobremesa' | 'outro';
 
 export interface CategoriaRow {
   id: string;
