@@ -85,18 +85,8 @@ function minutosDoDia(hhmm: string): number | null {
   return h * 60 + min;
 }
 
-/**
- * A pizzaria está aberta em `agora`?
- * Puro (recebe Date) para servir gestão, cardápio e testes. Faixas que cruzam
- * a meia-noite (fecha < abre) contam também nas primeiras horas do dia seguinte.
- */
-export function estaAberto(
-  horario: HorarioFuncionamento | null | undefined,
-  agora: Date = new Date()
-): boolean {
-  if (!horario) return true; // sem configuração = sempre aberto
-
-  // dia da semana + hora local da pizzaria, independente do fuso do servidor
+/** Dia da semana (0 = domingo) e minutos desde 00:00 no fuso da pizzaria. */
+function agoraLocal(agora: Date): { semana: number; agoraMin: number } {
   const partes = new Intl.DateTimeFormat('en-US', {
     timeZone: FUSO_PIZZARIA,
     weekday: 'short',
@@ -109,63 +99,78 @@ export function estaAberto(
   const semana = DIA[partes.find((p) => p.type === 'weekday')?.value ?? ''] ?? 0;
   const hora = Number(partes.find((p) => p.type === 'hour')?.value ?? 0) % 24;
   const minuto = Number(partes.find((p) => p.type === 'minute')?.value ?? 0);
-  const agoraMin = hora * 60 + minuto;
+  return { semana, agoraMin: hora * 60 + minuto };
+}
 
-  const cobre = (faixa: FaixaHorario, min: number, viradaDeOntem: boolean): boolean => {
-    const abre = minutosDoDia(faixa.abre);
-    const fecha = minutosDoDia(faixa.fecha);
-    if (abre === null || fecha === null) return false;
-    if (fecha > abre) {
-      // faixa normal, só vale no próprio dia
-      return !viradaDeOntem && min >= abre && min < fecha;
-    }
-    // faixa que cruza a meia-noite: hoje depois de `abre`, ou madrugada seguinte antes de `fecha`
-    return viradaDeOntem ? min < fecha : min >= abre;
-  };
+function cobre(faixa: FaixaHorario, min: number, viradaDeOntem: boolean): boolean {
+  const abre = minutosDoDia(faixa.abre);
+  const fecha = minutosDoDia(faixa.fecha);
+  if (abre === null || fecha === null) return false;
+  if (fecha > abre) {
+    // faixa normal, só vale no próprio dia
+    return !viradaDeOntem && min >= abre && min < fecha;
+  }
+  // faixa que cruza a meia-noite: hoje depois de `abre`, ou madrugada seguinte antes de `fecha`
+  return viradaDeOntem ? min < fecha : min >= abre;
+}
+
+/** Faixa que cobre `agora` (de hoje ou a virada de ontem), ou null se nenhuma. */
+function faixaAberta(
+  horario: HorarioFuncionamento,
+  agora: Date
+): FaixaHorario | null {
+  const { semana, agoraMin } = agoraLocal(agora);
 
   const hoje = horario[String(semana)] ?? [];
-  if (hoje.some((f) => cobre(f, agoraMin, false))) return true;
+  const deHoje = hoje.find((f) => cobre(f, agoraMin, false));
+  if (deHoje) return deHoje;
 
   const ontem = horario[String((semana + 6) % 7)] ?? [];
-  return ontem.some((f) => cobre(f, agoraMin, true));
+  return ontem.find((f) => cobre(f, agoraMin, true)) ?? null;
 }
 
 /**
- * Retorna um objeto com `aberto` (bool) e `horarios` (string formatado).
- * Usado para exibir no header do cardápio: "Aberto • 18:00 - 23:00" ou "Fechado • Abre amanhã às 18:00"
+ * A pizzaria está aberta em `agora`?
+ * Puro (recebe Date) para servir gestão, cardápio e testes. Faixas que cruzam
+ * a meia-noite (fecha < abre) contam também nas primeiras horas do dia seguinte.
+ */
+export function estaAberto(
+  horario: HorarioFuncionamento | null | undefined,
+  agora: Date = new Date()
+): boolean {
+  if (!horario) return true; // sem configuração = sempre aberto
+  return faixaAberta(horario, agora) !== null;
+}
+
+/**
+ * Status para o header do cardápio.
+ * - aberto: `fechaAs` traz o fim da faixa atual ("23:00") e `horarios` as faixas de hoje.
+ * - fechado: `horarios` vira a próxima abertura de hoje ("Abre às 18:00") ou "Fechado por hoje".
  */
 export function statusHorario(
   horario: HorarioFuncionamento | null | undefined,
   agora: Date = new Date()
-): { aberto: boolean; horarios: string } {
-  const aberto = estaAberto(horario, agora);
-  
+): { aberto: boolean; horarios: string; fechaAs?: string } {
   if (!horario) {
     return { aberto: true, horarios: 'Sempre aberto' };
   }
 
-  const partes = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Sao_Paulo',
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).formatToParts(agora);
-
-  const DIA: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-  const semana = DIA[partes.find((p) => p.type === 'weekday')?.value ?? ''] ?? 0;
-
+  const faixa = faixaAberta(horario, agora);
+  const { semana, agoraMin } = agoraLocal(agora);
   const hoje = horario[String(semana)] ?? [];
-  
-  if (aberto && hoje.length > 0) {
+
+  if (faixa) {
     const faixas = hoje.map((f) => `${f.abre} - ${f.fecha}`).join(' / ');
-    return { aberto: true, horarios: faixas };
+    return { aberto: true, horarios: faixas || `${faixa.abre} - ${faixa.fecha}`, fechaAs: faixa.fecha };
   }
 
-  if (!aberto && hoje.length > 0) {
-    const faixas = hoje.map((f) => `${f.abre} - ${f.fecha}`).join(' / ');
-    return { aberto: false, horarios: `Fecha às ${faixas.split(' - ')[1] || '?'}` };
-  }
+  // fechado: existe faixa mais tarde hoje?
+  const proxima = hoje
+    .filter((f) => (minutosDoDia(f.abre) ?? -1) > agoraMin)
+    .sort((a, b) => (minutosDoDia(a.abre) ?? 0) - (minutosDoDia(b.abre) ?? 0))[0];
 
-  return { aberto: false, horarios: 'Fechado' };
+  if (proxima) {
+    return { aberto: false, horarios: `Abre às ${proxima.abre}` };
+  }
+  return { aberto: false, horarios: 'Fechado por hoje' };
 }

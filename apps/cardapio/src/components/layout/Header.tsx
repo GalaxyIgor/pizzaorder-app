@@ -30,9 +30,15 @@ export function Header() {
         </h1>
         <p className="text-sm text-creme-muted mt-1">
           <span className={`font-bold mr-1 ${statusAtual.aberto ? 'text-manjericao' : 'text-pomodoro'}`}>
-            {statusAtual.aberto ? '●' : '●'}
+            ●
           </span>
-          {statusAtual.aberto ? 'Aberto' : 'Fechado'} • {statusAtual.horarios}
+          {statusAtual.aberto
+            ? statusAtual.fechaAs
+              ? `Aberto · fecha às ${statusAtual.fechaAs}`
+              : 'Aberto'
+            : statusAtual.horarios === 'Fechado por hoje'
+              ? 'Fechado por hoje'
+              : `Fechado · ${statusAtual.horarios}`}
         </p>
       </div>
       <AccountMenu />
