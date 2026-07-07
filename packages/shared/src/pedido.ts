@@ -55,6 +55,8 @@ export interface CriarPedidoInput {
   observacao?: string;
   formaPagamento: FormaPagamento;
   metodoPagamentoLocal?: MetodoPagamentoLocal;
+  /** "Troco para quanto?" — só quando metodoPagamentoLocal = dinheiro. */
+  trocoPara?: number | null;
   itens: CartItem[];
 }
 
@@ -83,6 +85,8 @@ export interface PedidoDetalhe extends PedidoResumo {
   taxa_servico: number;
   forma_pagamento: FormaPagamento;
   metodo_pagamento_local: MetodoPagamentoLocal | null;
+  /** Cliente paga em dinheiro e precisa de troco para este valor. */
+  troco_para: number | null;
   status_pagamento: StatusPagamento;
 }
 

@@ -19,4 +19,4 @@ export const STATUS_ATIVOS: StatusPedido[] = [
 ];
 
 export const SELECT_PEDIDO_PAINEL =
-  'id, numero, status, modalidade, total, criado_em, previsao_pronto_em, nome_cliente, telefone_cliente, endereco_entrega, observacao, subtotal, taxa_entrega, taxa_servico, forma_pagamento, metodo_pagamento_local, status_pagamento, itens_pedido (id, tipo, nome, descricao, tamanho, preco_unit, quantidade, sabores, adicionais)';
+  'id, numero, status, modalidade, total, criado_em, previsao_pronto_em, nome_cliente, telefone_cliente, endereco_entrega, observacao, subtotal, taxa_entrega, taxa_servico, forma_pagamento, metodo_pagamento_local, troco_para, status_pagamento, itens_pedido (id, tipo, nome, descricao, tamanho, preco_unit, quantidade, sabores, adicionais)';
