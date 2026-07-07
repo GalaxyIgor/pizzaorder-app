@@ -28,7 +28,7 @@ export function ProductOptionCard({
       type="button"
       onClick={() => onSelect(product)}
       aria-pressed={isSelected}
-      className={`relative w-full flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition-all cursor-pointer ${
+      className={`relative w-full flex flex-col gap-2 p-3 rounded-2xl border-2 text-left transition-all cursor-pointer ${
         isSelected
           ? selectedSide === 1
             ? 'border-ouro bg-ouro/5 ring-1 ring-ouro shadow-xs'
@@ -39,19 +39,19 @@ export function ProductOptionCard({
       }`}
     >
       {/* Linha: foto (esquerda) + título e valor (direita) */}
-      <div className="flex gap-4 items-center w-full min-w-0">
-        <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-massa-bg">
+      <div className="flex gap-3 items-center w-full min-w-0">
+        <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-massa-bg">
           {product.imagem_url ? (
             <Image
               src={product.imagem_url}
               alt={product.nome}
               fill
-              sizes="96px"
+              sizes="64px"
               className="object-cover"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
-              <span className="text-3xl">🍕</span>
+              <span className="text-2xl">🍕</span>
             </div>
           )}
           {isSelected && (
@@ -70,11 +70,11 @@ export function ProductOptionCard({
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-display font-semibold text-carbono text-lg leading-tight">
+          <h3 className="font-display font-semibold text-carbono text-base leading-tight">
             {product.nome}
           </h3>
           <div className="flex items-center gap-2 mt-1">
-            <span className="font-display text-lg font-bold text-pomodoro">
+            <span className="font-display text-base font-bold text-pomodoro">
               {formatarPreco(menorPreco(product))}
             </span>
             {tamanhoBebida && (
@@ -88,7 +88,7 @@ export function ProductOptionCard({
 
       {/* Descrição em largura total, abaixo de tudo */}
       {product.descricao && (
-        <p className="text-sm text-creme-muted leading-relaxed">
+        <p className="text-xs text-creme-muted leading-relaxed line-clamp-2">
           {product.descricao}
         </p>
       )}
