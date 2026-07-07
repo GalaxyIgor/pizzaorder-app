@@ -6,9 +6,10 @@
 // não existe policy de UPDATE em pedidos — a escrita é service-role, com
 // exigirStaff + máquina de estados (TRANSICOES_STATUS) validando tudo aqui.
 //
-// A cozinha é produção pura: só move a pizza da fila para "cozinhando"
+// A cozinha é produção pura: move a pizza da fila para "cozinhando"
 // (aceito -> em_preparo) e avisa que ficou pronta (em_preparo -> pronto).
-// Aceite, cancelamento e entrega são da gestão (apps/gestao).
+// Também pode VOLTAR um passo (clique acidental): em_preparo -> aceito e
+// pronto -> em_preparo. Aceite, cancelamento e entrega são da gestão (apps/gestao).
 
 import { revalidatePath } from 'next/cache';
 import { TRANSICOES_STATUS, type StatusPedido } from '@pizzaorder/shared';
@@ -28,7 +29,9 @@ export interface AtualizarStatusInput {
 /** Transições que a COZINHA pode fazer (subconjunto de TRANSICOES_STATUS). */
 const TRANSICOES_COZINHA: Partial<Record<StatusPedido, StatusPedido[]>> = {
   aceito: ['em_preparo'],
-  em_preparo: ['pronto'],
+  // 'aceito' e 'em_preparo' como destino são o desfazer de clique acidental
+  em_preparo: ['pronto', 'aceito'],
+  pronto: ['em_preparo'],
 };
 
 export async function atualizarStatusPedido(

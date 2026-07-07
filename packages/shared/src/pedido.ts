@@ -144,14 +144,15 @@ export function statusLabelCliente(status: StatusPedido, modalidade: Modalidade)
  * Máquina de estados do pedido — única fonte das transições permitidas
  * (as server actions da gestão e da cozinha validam contra ela).
  * Gestão: pendente->aceito, pronto->saiu/concluido, saiu->concluido, *->cancelado.
- * Cozinha: aceito->em_preparo, em_preparo->pronto (whitelist na action dela).
+ * Cozinha: aceito->em_preparo, em_preparo->pronto (whitelist na action dela),
+ * mais o "voltar" de clique acidental: em_preparo->aceito e pronto->em_preparo.
  * `saiu_para_entrega` só vale para modalidade `entrega` (validação extra na action).
  */
 export const TRANSICOES_STATUS: Record<StatusPedido, StatusPedido[]> = {
   pendente: ['aceito', 'cancelado'],
   aceito: ['em_preparo', 'cancelado'],
-  em_preparo: ['pronto', 'cancelado'],
-  pronto: ['saiu_para_entrega', 'concluido', 'cancelado'],
+  em_preparo: ['pronto', 'aceito', 'cancelado'],
+  pronto: ['saiu_para_entrega', 'concluido', 'em_preparo', 'cancelado'],
   saiu_para_entrega: ['concluido', 'cancelado'],
   concluido: [],
   cancelado: [],

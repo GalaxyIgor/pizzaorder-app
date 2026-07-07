@@ -130,14 +130,26 @@ export function PedidoCard({ slug, pedido, agora }: Props) {
           </BotaoPrimario>
         )}
         {pedido.status === 'em_preparo' && (
-          <BotaoPrimario onClick={() => mudar('pronto')} disabled={pending}>
-            {pending ? '...' : 'Pronta'}
-          </BotaoPrimario>
+          <>
+            {/* desfazer clique acidental: devolve pra fila */}
+            <BotaoVoltar onClick={() => mudar('aceito')} disabled={pending}>
+              ↩ Voltar
+            </BotaoVoltar>
+            <BotaoPrimario onClick={() => mudar('pronto')} disabled={pending}>
+              {pending ? '...' : 'Pronta'}
+            </BotaoPrimario>
+          </>
         )}
         {pedido.status === 'pronto' && (
-          <p className="flex-1 text-xs text-creme-muted self-center">
-            ✅ Pronta — a gestão cuida da {pedido.modalidade === 'entrega' ? 'entrega' : 'retirada'}.
-          </p>
+          <>
+            <p className="flex-1 text-xs text-creme-muted self-center">
+              ✅ Pronta — a gestão cuida da {pedido.modalidade === 'entrega' ? 'entrega' : 'retirada'}.
+            </p>
+            {/* desfazer clique acidental: volta pra "Cozinhando" */}
+            <BotaoVoltar onClick={() => mudar('em_preparo')} disabled={pending}>
+              ↩ Voltar
+            </BotaoVoltar>
+          </>
         )}
       </div>
     </article>
@@ -150,6 +162,16 @@ function BotaoPrimario(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
       type="button"
       {...props}
       className="flex-1 bg-manjericao hover:opacity-90 disabled:opacity-60 text-white p-3 rounded-lg font-semibold text-sm transition-all active:scale-[0.99]"
+    />
+  );
+}
+
+function BotaoVoltar(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className="px-4 border-2 border-borda-suave text-creme-muted hover:text-carbono hover:border-carbono/40 disabled:opacity-60 rounded-lg font-semibold text-sm transition-colors"
     />
   );
 }

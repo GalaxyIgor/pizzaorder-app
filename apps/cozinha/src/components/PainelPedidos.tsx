@@ -15,9 +15,10 @@
 // então o overlay "Iniciar turno" desbloqueia o áudio; sem ele, o alerta
 // visual (badge/título da aba) continua funcionando.
 //
-// Arrastar: segurar um card (~250ms) e soltar na próxima coluna avança o
+// Arrastar: segurar um card (~250ms) e soltar na coluna vizinha muda o
 // status (pointer events — mouse e toque, sem lib). Só transições da cozinha:
-// Fila→Cozinhando e Cozinhando→Prontas. Os botões continuam como alternativa.
+// Fila→Cozinhando e Cozinhando→Prontas, mais o caminho inverso (uma coluna
+// por vez) pra desfazer clique acidental. Os botões continuam como alternativa.
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -194,11 +195,20 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
       executar(pedido, 'pronto');
       return;
     }
+    // voltar (desfazer clique acidental) — uma coluna por vez
+    if (pedido.status === 'em_preparo' && alvo === 'fila') {
+      executar(pedido, 'aceito');
+      return;
+    }
+    if (pedido.status === 'pronto' && alvo === 'em_preparo') {
+      executar(pedido, 'em_preparo');
+      return;
+    }
     if (pedido.status === 'aceito' && alvo === 'prontas') {
       avisar('Comece o preparo primeiro — arraste para "Cozinhando".');
       return;
     }
-    avisar('O pedido só anda para a frente.');
+    avisar('Mova o pedido uma coluna por vez.');
   };
 
   // ------- segurar e arrastar (pointer events, mouse + toque) -------
@@ -267,7 +277,8 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
   const conviteValido = (coluna: ColunaAlvo): boolean => {
     if (!drag) return false;
     if (drag.pedido.status === 'aceito') return coluna === 'em_preparo';
-    if (drag.pedido.status === 'em_preparo') return coluna === 'prontas';
+    if (drag.pedido.status === 'em_preparo') return coluna === 'prontas' || coluna === 'fila';
+    if (drag.pedido.status === 'pronto') return coluna === 'em_preparo';
     return false;
   };
 
@@ -288,7 +299,7 @@ export function PainelPedidos({ slug, pizzariaId, pedidosIniciais }: Props) {
       {/* barra de status do turno / som */}
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-creme-muted hidden md:block">
-          Dica: segure e arraste um pedido para a próxima coluna.
+          Dica: segure e arraste um pedido para a coluna vizinha (inclusive para trás).
         </p>
         <button
           type="button"
