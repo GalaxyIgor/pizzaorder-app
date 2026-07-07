@@ -17,6 +17,8 @@ interface RevisaoStepProps {
   nome: string;
   telefone: string;
   metodoPagamento: MetodoPagamentoLocal;
+  /** "Troco para" quando pagamento em dinheiro (null = não precisa). */
+  trocoPara: number | null;
   observacao: string;
   onObservacaoChange: (observacao: string) => void;
   subtotal: number;
@@ -32,6 +34,7 @@ export function RevisaoStep({
   nome,
   telefone,
   metodoPagamento,
+  trocoPara,
   observacao,
   onObservacaoChange,
   subtotal,
@@ -81,6 +84,9 @@ export function RevisaoStep({
         <p className="text-creme-muted">
           Pagamento: {modalidade === 'entrega' ? 'na entrega' : 'no balcão'} —{' '}
           {METODO_PAGAMENTO_LABEL[metodoPagamento]}
+          {metodoPagamento === 'dinheiro' && trocoPara != null && (
+            <> · troco para {formatarPreco(trocoPara)}</>
+          )}
         </p>
       </div>
 

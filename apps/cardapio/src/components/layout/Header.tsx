@@ -28,6 +28,9 @@ export function Header() {
         >
           {pizzaria.nome}
         </h1>
+        {pizzaria.descricao && (
+          <p className="text-sm text-creme-muted mt-0.5">{pizzaria.descricao}</p>
+        )}
         <p className="text-sm text-creme-muted mt-1">
           <span className={`font-bold mr-1 ${statusAtual.aberto ? 'text-manjericao' : 'text-pomodoro'}`}>
             ●

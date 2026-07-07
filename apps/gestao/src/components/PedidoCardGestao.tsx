@@ -155,6 +155,12 @@ export function PedidoCardGestao({ slug, pedido, agora }: Props) {
                   ? ` (${METODO_PAGAMENTO_LABEL[pedido.metodo_pagamento_local]})`
                   : ''
               }`}
+          {pedido.troco_para != null && (
+            <span className="font-semibold text-carbono">
+              {' '}
+              · troco para {formatarPreco(pedido.troco_para)}
+            </span>
+          )}
         </p>
       </div>
 

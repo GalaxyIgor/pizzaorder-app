@@ -113,6 +113,9 @@ export default async function ComandaPage({
                   : ''
               }`}
         </p>
+        {pedido.troco_para != null && (
+          <p className="font-bold">TROCO PARA {formatarPreco(pedido.troco_para)}</p>
+        )}
         {pedido.previsao_pronto_em && (
           <p>
             Previsão:{' '}

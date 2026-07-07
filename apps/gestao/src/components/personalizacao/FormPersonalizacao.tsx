@@ -6,17 +6,21 @@
 // Números ficam como string no estado (aceitando vírgula) e são convertidos
 // no submit; a validação de verdade é server-side (salvarPersonalizacao).
 
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import type {
   BairroFrete,
   ConfigFrete,
   EstrategiaMeiaMeia,
   FaixaKm,
+  MetodoPagamentoLocal,
   TipoFrete,
   TipoTaxaServico,
 } from '@pizzaorder/shared';
-import { salvarPersonalizacao } from '@/lib/actions/pizzaria';
+import { METODO_PAGAMENTO_LABEL } from '@pizzaorder/shared';
+import { salvarPersonalizacao, uploadLogo } from '@/lib/actions/pizzaria';
 import type { PizzariaConfig } from '@/app/[slug]/personalizacao/page';
+
+const METODOS: MetodoPagamentoLocal[] = ['dinheiro', 'cartao', 'pix'];
 
 const TIPO_FRETE_LABEL: Record<TipoFrete, string> = {
   faixas_km: 'Por faixas de km',
@@ -60,10 +64,46 @@ export function FormPersonalizacao({
   const [salvo, setSalvo] = useState(false);
 
   // identidade
+  const [nome, setNome] = useState(inicial.nome);
   const [logoUrl, setLogoUrl] = useState(inicial.logo_url ?? '');
+  const [enviandoLogo, setEnviandoLogo] = useState(false);
+  const inputLogoRef = useRef<HTMLInputElement>(null);
   const [cor, setCor] = useState(inicial.cor_primaria || '#e63946');
   const [whatsapp, setWhatsapp] = useState(inicial.whatsapp ?? '');
+  const [endereco, setEndereco] = useState(inicial.endereco ?? '');
+  const [descricao, setDescricao] = useState(inicial.descricao ?? '');
+  const [instagram, setInstagram] = useState(inicial.instagram ?? '');
   const [pedidoMinimo, setPedidoMinimo] = useState(str(inicial.pedido_minimo));
+
+  // aviso temporário na home do cardápio
+  const [aviso, setAviso] = useState(inicial.aviso ?? '');
+  const [avisoAtivo, setAvisoAtivo] = useState(inicial.aviso_ativo);
+
+  // métodos de pagamento aceitos no "pagar na entrega/retirada"
+  const [metodos, setMetodos] = useState<MetodoPagamentoLocal[]>(
+    inicial.metodos_pagamento?.length ? inicial.metodos_pagamento : [...METODOS]
+  );
+
+  const alternarMetodo = (m: MetodoPagamentoLocal, marcado: boolean) => {
+    setMetodos((atuais) => (marcado ? [...atuais, m] : atuais.filter((x) => x !== m)));
+  };
+
+  const enviarLogo = (arquivo: File | null) => {
+    if (!arquivo) return;
+    setErro(null);
+    setEnviandoLogo(true);
+    const fd = new FormData();
+    fd.set('logo', arquivo);
+    uploadLogo(slug, fd)
+      .then((r) => {
+        if (r.erro) setErro(r.erro);
+        else if (r.url) setLogoUrl(r.url);
+      })
+      .finally(() => {
+        setEnviandoLogo(false);
+        if (inputLogoRef.current) inputLogoRef.current.value = '';
+      });
+  };
 
   // modalidades
   const [aceitaEntrega, setAceitaEntrega] = useState(inicial.aceita_entrega);
@@ -138,9 +178,16 @@ export function FormPersonalizacao({
     setSalvo(false);
     startTransition(async () => {
       const r = await salvarPersonalizacao(slug, {
+        nome: nome.trim(),
         logo_url: logoUrl.trim() || null,
         cor_primaria: cor.trim(),
         whatsapp: whatsapp.trim() || null,
+        endereco: endereco.trim() || null,
+        descricao: descricao.trim() || null,
+        aviso: aviso.trim() || null,
+        aviso_ativo: avisoAtivo,
+        instagram: instagram.trim() || null,
+        metodos_pagamento: metodos,
         pedido_minimo: numeroOuNull(pedidoMinimo),
         aceita_entrega: aceitaEntrega,
         aceita_retirada: aceitaRetirada,
@@ -165,13 +212,43 @@ export function FormPersonalizacao({
 
       {/* identidade */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Campo rotulo="Logo (URL da imagem)">
+        <Campo rotulo="Nome da pizzaria">
+          <input
+            type="text"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Pizzaria do Bairro"
+            className={INPUT}
+          />
+        </Campo>
+        <Campo rotulo="Descrição curta — aparece embaixo do nome">
+          <input
+            type="text"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            maxLength={120}
+            placeholder="Forno a lenha desde 1998"
+            className={INPUT}
+          />
+        </Campo>
+        <Campo rotulo="Logo">
+          <div className="flex gap-2 items-center">
+            <input
+              ref={inputLogoRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => enviarLogo(e.target.files?.[0] ?? null)}
+              disabled={enviandoLogo}
+              className="text-sm text-creme-muted file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-2 file:border-borda-suave file:bg-white file:text-sm file:font-semibold file:text-carbono file:cursor-pointer hover:file:border-manjericao file:transition-colors"
+            />
+            {enviandoLogo && <span className="text-xs text-creme-muted">Enviando...</span>}
+          </div>
           <input
             type="url"
             value={logoUrl}
             onChange={(e) => setLogoUrl(e.target.value)}
-            placeholder="https://…/logo.png"
-            className={INPUT}
+            placeholder="ou cole a URL de uma imagem"
+            className={`${INPUT} mt-2`}
           />
         </Campo>
         <Campo rotulo="Cor primária">
@@ -198,6 +275,24 @@ export function FormPersonalizacao({
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
             placeholder="5511999998888"
+            className={INPUT}
+          />
+        </Campo>
+        <Campo rotulo="Endereço da loja — o cliente de retirada vê no site">
+          <input
+            type="text"
+            value={endereco}
+            onChange={(e) => setEndereco(e.target.value)}
+            placeholder="Rua das Margaridas, 123 — Centro"
+            className={INPUT}
+          />
+        </Campo>
+        <Campo rotulo="Instagram — só o nome do perfil">
+          <input
+            type="text"
+            value={instagram}
+            onChange={(e) => setInstagram(e.target.value)}
+            placeholder="minhapizzaria"
             className={INPUT}
           />
         </Campo>
@@ -230,6 +325,45 @@ export function FormPersonalizacao({
           <Checkbox rotulo="Entrega" marcado={aceitaEntrega} onMudar={setAceitaEntrega} />
           <Checkbox rotulo="Retirada" marcado={aceitaRetirada} onMudar={setAceitaRetirada} />
           <Checkbox rotulo="Comer no local" marcado={aceitaLocal} onMudar={setAceitaLocal} />
+        </div>
+      </fieldset>
+
+      {/* aviso temporário na home */}
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-bold text-carbono uppercase tracking-wide">
+          Aviso no site
+        </legend>
+        <p className="text-xs text-creme-muted">
+          Mensagem em destaque na primeira tela do cardápio — promoções, avisos de feriado etc.
+        </p>
+        <textarea
+          value={aviso}
+          onChange={(e) => setAviso(e.target.value)}
+          maxLength={200}
+          rows={2}
+          placeholder="Terça é dia de pizza: 20% off nas grandes!"
+          className={INPUT}
+        />
+        <Checkbox rotulo="Exibir o aviso no site" marcado={avisoAtivo} onMudar={setAvisoAtivo} />
+      </fieldset>
+
+      {/* métodos de pagamento */}
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-bold text-carbono uppercase tracking-wide">
+          Pagamento na entrega/retirada
+        </legend>
+        <p className="text-xs text-creme-muted">
+          O checkout só oferece os métodos marcados aqui.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          {METODOS.map((m) => (
+            <Checkbox
+              key={m}
+              rotulo={METODO_PAGAMENTO_LABEL[m]}
+              marcado={metodos.includes(m)}
+              onMudar={(v) => alternarMetodo(m, v)}
+            />
+          ))}
         </div>
       </fieldset>
 

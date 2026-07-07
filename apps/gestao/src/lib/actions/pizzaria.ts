@@ -12,6 +12,7 @@ import type {
   ConfigMeiaMeia,
   ConfigTaxaServico,
   HorarioFuncionamento,
+  MetodoPagamentoLocal,
 } from '@pizzaorder/shared';
 import { supabase as admin } from '@/lib/supabase';
 import { exigirStaff } from '@/lib/staff';
@@ -20,10 +21,19 @@ export interface AcaoPizzariaResult {
   erro?: string;
 }
 
+const METODOS_VALIDOS: MetodoPagamentoLocal[] = ['dinheiro', 'cartao', 'pix'];
+
 export interface PersonalizacaoInput {
+  nome: string;
   logo_url: string | null;
   cor_primaria: string;
   whatsapp: string | null;
+  endereco: string | null;
+  descricao: string | null;
+  aviso: string | null;
+  aviso_ativo: boolean;
+  instagram: string | null;
+  metodos_pagamento: MetodoPagamentoLocal[];
   pedido_minimo: number | null;
   aceita_entrega: boolean;
   aceita_retirada: boolean;
@@ -78,6 +88,11 @@ export async function salvarPersonalizacao(
 ): Promise<AcaoPizzariaResult> {
   const { pizzaria } = await exigirStaff(slug);
 
+  const nome = dados.nome?.trim() ?? '';
+  if (nome.length < 2) {
+    return { erro: 'Informe o nome da pizzaria.' };
+  }
+
   const cor = dados.cor_primaria?.trim() ?? '';
   if (!/^#[0-9a-fA-F]{6}$/.test(cor)) {
     return { erro: 'Cor primária inválida — use o formato #RRGGBB.' };
@@ -85,6 +100,17 @@ export async function salvarPersonalizacao(
 
   if (!dados.aceita_entrega && !dados.aceita_retirada && !dados.aceita_local) {
     return { erro: 'Ative pelo menos uma modalidade (entrega, retirada ou local).' };
+  }
+
+  const metodos = (dados.metodos_pagamento ?? []).filter((m) => METODOS_VALIDOS.includes(m));
+  if (metodos.length === 0) {
+    return { erro: 'Ative pelo menos um método de pagamento (dinheiro, cartão ou pix).' };
+  }
+
+  // guarda só o handle, com ou sem @ na digitação
+  const instagram = dados.instagram?.trim().replace(/^@/, '').replace(/\s/g, '') || null;
+  if (instagram && !/^[a-zA-Z0-9._]{1,30}$/.test(instagram)) {
+    return { erro: 'Instagram inválido — use só o nome do perfil, ex.: minhapizzaria.' };
   }
 
   if (dados.pedido_minimo != null && !numeroValido(dados.pedido_minimo)) {
@@ -119,9 +145,16 @@ export async function salvarPersonalizacao(
   const { error } = await admin
     .from('pizzarias')
     .update({
+      nome,
       logo_url: dados.logo_url?.trim() || null,
       cor_primaria: cor,
       whatsapp,
+      endereco: dados.endereco?.trim() || null,
+      descricao: dados.descricao?.trim() || null,
+      aviso: dados.aviso?.trim() || null,
+      aviso_ativo: dados.aviso_ativo && !!dados.aviso?.trim(),
+      instagram,
+      metodos_pagamento: metodos,
       pedido_minimo: dados.pedido_minimo,
       aceita_entrega: dados.aceita_entrega,
       aceita_retirada: dados.aceita_retirada,
@@ -139,6 +172,49 @@ export async function salvarPersonalizacao(
 
   revalidatePath(`/${slug}/personalizacao`);
   return {};
+}
+
+const LOGO_MAX_BYTES = 2 * 1024 * 1024;
+
+export interface UploadLogoResult {
+  erro?: string;
+  url?: string;
+}
+
+/**
+ * Sobe o logo para o bucket público `logos` (supabase/personalizacao.sql) e
+ * devolve a URL. O form coloca a URL no campo e salva junto com o resto —
+ * o upload não altera a pizzaria sozinho.
+ */
+export async function uploadLogo(slug: string, formData: FormData): Promise<UploadLogoResult> {
+  const { pizzaria } = await exigirStaff(slug);
+
+  const arquivo = formData.get('logo');
+  if (!(arquivo instanceof File) || arquivo.size === 0) {
+    return { erro: 'Escolha uma imagem.' };
+  }
+  if (!arquivo.type.startsWith('image/')) {
+    return { erro: 'O arquivo precisa ser uma imagem (PNG, JPG, WebP...).' };
+  }
+  if (arquivo.size > LOGO_MAX_BYTES) {
+    return { erro: 'Imagem muito grande — o limite é 2MB.' };
+  }
+
+  const ext = arquivo.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+  // nome com timestamp: troca de logo não esbarra no cache da URL anterior
+  const caminho = `${pizzaria.id}/logo-${Date.now()}.${ext}`;
+
+  const { error } = await admin.storage
+    .from('logos')
+    .upload(caminho, arquivo, { contentType: arquivo.type, upsert: true });
+
+  if (error) {
+    console.error('[uploadLogo]', error.message);
+    return { erro: 'Não foi possível enviar a imagem. Tente novamente.' };
+  }
+
+  const { data } = admin.storage.from('logos').getPublicUrl(caminho);
+  return { url: data.publicUrl };
 }
 
 const RE_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;

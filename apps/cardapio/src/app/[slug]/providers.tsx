@@ -26,7 +26,32 @@ function CartComConfig({ slug, children }: { slug: string; children: ReactNode }
 
   return (
     <CartProvider slug={slug} configMeiaMeia={pizzaria.config_meia_meia}>
-      <ProdutoDetalheProvider>{children}</ProdutoDetalheProvider>
+      <ProdutoDetalheProvider>
+        {/* A cor primária do tenant sobrescreve o vermelho padrão do tema:
+            no Tailwind v4 as cores são CSS vars (--color-pomodoro no @theme),
+            então botões, pills e destaques herdam a cor da pizzaria. */}
+        <div
+          style={
+            {
+              '--color-pomodoro': pizzaria.cor_primaria,
+              '--color-pomodoro-hover': escurecer(pizzaria.cor_primaria),
+            } as React.CSSProperties
+          }
+        >
+          {children}
+        </div>
+      </ProdutoDetalheProvider>
     </CartProvider>
   );
+}
+
+/** Tom ~20% mais escuro para o hover, derivado da cor primária (#RRGGBB). */
+function escurecer(hex: string): string {
+  const m = /^#([0-9a-fA-F]{6})$/.exec(hex.trim());
+  if (!m) return hex;
+  const canal = (i: number) =>
+    Math.round(parseInt(m[1].slice(i, i + 2), 16) * 0.8)
+      .toString(16)
+      .padStart(2, '0');
+  return `#${canal(0)}${canal(2)}${canal(4)}`;
 }

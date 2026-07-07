@@ -57,6 +57,7 @@ export default function CheckoutPage() {
   const [telefone, setTelefone] = useState('');
   const [email, setEmail] = useState('');
   const [metodoPagamento, setMetodoPagamento] = useState<MetodoPagamentoLocal | null>(null);
+  const [trocoPara, setTrocoPara] = useState('');
   const [observacao, setObservacao] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   // Falha ao confirmar o pedido (retorno de criarPedido): vira tela cheia,
@@ -118,6 +119,14 @@ export default function CheckoutPage() {
   const taxaServico = calcularTaxaServico(pizzaria.config_taxa_servico, totalPrice);
   const total = arredondar(totalPrice + taxaEntrega + taxaServico);
 
+  // "troco para" digitado (aceita vírgula); null = vazio/não precisa
+  const trocoNumero = (() => {
+    const t = trocoPara.trim().replace(',', '.');
+    if (t === '') return null;
+    const n = Number(t);
+    return Number.isFinite(n) ? n : null;
+  })();
+
   const abaixoDoMinimo =
     pizzaria.pedido_minimo != null && totalPrice < pizzaria.pedido_minimo;
   // Aviso em todas as etapas; o bloqueio de verdade é server-side (criarPedido).
@@ -137,7 +146,11 @@ export default function CheckoutPage() {
       case 'dados':
         return nome.trim() !== '' && telefone.trim() !== '';
       case 'pagamento':
-        return metodoPagamento !== null;
+        // troco preenchido precisa cobrir o total (vazio = não precisa de troco)
+        return (
+          metodoPagamento !== null &&
+          (metodoPagamento !== 'dinheiro' || trocoNumero === null || trocoNumero >= total)
+        );
       case 'revisao':
         return !abaixoDoMinimo && !lojaPausada && !pending;
     }
@@ -166,6 +179,7 @@ export default function CheckoutPage() {
         observacao,
         formaPagamento: 'na_entrega',
         metodoPagamentoLocal: metodoPagamento,
+        trocoPara: metodoPagamento === 'dinheiro' ? trocoNumero : null,
         itens: items,
       });
       if (resultado?.erro) setFalha(resultado.erro);
@@ -346,8 +360,12 @@ export default function CheckoutPage() {
       {etapa === 'pagamento' && modalidade && (
         <PagamentoStep
           modalidade={modalidade}
+          metodosAceitos={pizzaria.metodos_pagamento ?? []}
           metodo={metodoPagamento}
           onMetodoChange={setMetodoPagamento}
+          trocoPara={trocoPara}
+          onTrocoChange={setTrocoPara}
+          total={total}
         />
       )}
       {etapa === 'revisao' && modalidade && metodoPagamento && (
@@ -358,6 +376,7 @@ export default function CheckoutPage() {
           nome={nome}
           telefone={telefone}
           metodoPagamento={metodoPagamento}
+          trocoPara={metodoPagamento === 'dinheiro' ? trocoNumero : null}
           observacao={observacao}
           onObservacaoChange={setObservacao}
           subtotal={totalPrice}

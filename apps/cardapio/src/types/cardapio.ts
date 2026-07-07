@@ -35,6 +35,7 @@ import type {
   ConfigMeiaMeia,
   ConfigTaxaServico,
   HorarioFuncionamento,
+  MetodoPagamentoLocal,
 } from '@pizzaorder/shared';
 
 export interface Pizzaria {
@@ -43,6 +44,19 @@ export interface Pizzaria {
   slug: string;
   logo_url: string | null;
   cor_primaria: string;
+  /** Formato internacional só dígitos (5511999998888) — botão de contato. */
+  whatsapp: string | null;
+  /** Endereço da loja em texto livre — essencial para retirada/local. */
+  endereco: string | null;
+  /** Descrição/slogan curto exibido embaixo do nome. */
+  descricao: string | null;
+  /** Aviso temporário na home (promoção, feriado) — só exibe se aviso_ativo. */
+  aviso: string | null;
+  aviso_ativo: boolean;
+  /** Handle sem @. */
+  instagram: string | null;
+  /** Métodos aceitos no "pagar na entrega/retirada" (o checkout filtra). */
+  metodos_pagamento: MetodoPagamentoLocal[];
   config_meia_meia: ConfigMeiaMeia;
   config_frete: ConfigFrete;
   config_taxa_servico: ConfigTaxaServico | null;

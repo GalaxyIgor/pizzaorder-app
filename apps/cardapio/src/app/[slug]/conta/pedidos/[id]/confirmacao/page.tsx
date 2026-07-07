@@ -44,12 +44,12 @@ export default async function ConfirmacaoPage({
     'id' | 'numero' | 'modalidade' | 'total' | 'metodo_pagamento_local'
   >;
 
-  // whatsapp pode ainda não existir no banco (supabase/whatsapp.sql pendente):
-  // nesse caso cai no fallback só com o nome e o botão de WhatsApp não aparece.
-  let pizzaria: { nome: string; whatsapp?: string | null } | null = null;
+  // whatsapp/endereco podem ainda não existir no banco (scripts incrementais
+  // pendentes): nesse caso cai no fallback só com o nome.
+  let pizzaria: { nome: string; whatsapp?: string | null; endereco?: string | null } | null = null;
   const completo = await admin
     .from('pizzarias')
-    .select('nome, whatsapp')
+    .select('nome, whatsapp, endereco')
     .eq('slug', slug)
     .single();
   if (completo.error) {
@@ -88,6 +88,12 @@ export default async function ConfirmacaoPage({
             <p className="text-sm text-creme-muted mt-1">
               Pagamento: <span className="font-semibold text-carbono">{pagamento}</span> —{' '}
               <span className="font-semibold text-carbono">{formatarPreco(detalhe.total)}</span>
+            </p>
+          )}
+          {detalhe.modalidade !== 'entrega' && pizzaria?.endereco && (
+            <p className="text-sm text-creme-muted mt-2">
+              {detalhe.modalidade === 'retirada' ? 'Retire em:' : 'Endereço:'}{' '}
+              <span className="font-semibold text-carbono">{pizzaria.endereco}</span>
             </p>
           )}
         </div>

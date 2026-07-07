@@ -95,7 +95,7 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
   const { data: pizzaria, error: errPizzaria } = await admin
     .from('pizzarias')
     .select(
-      'id, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_entrega, aceita_retirada, aceita_local, pedidos_pausados, horario_funcionamento'
+      'id, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_entrega, aceita_retirada, aceita_local, pedidos_pausados, horario_funcionamento, metodos_pagamento'
     )
     .eq('slug', input.slug)
     .eq('ativo', true)
@@ -118,6 +118,21 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
   };
   if (!aceita[input.modalidade]) {
     return { erro: 'Essa modalidade não está disponível nesta pizzaria.' };
+  }
+
+  // método precisa estar entre os aceitos (personalização da gestão)
+  const metodosAceitos = (pizzaria.metodos_pagamento ?? []) as string[];
+  if (metodosAceitos.length > 0 && !metodosAceitos.includes(input.metodoPagamentoLocal)) {
+    return { erro: 'A pizzaria não aceita esse método de pagamento. Escolha outro.' };
+  }
+
+  // troco: só com dinheiro, e precisa cobrir o total (validado após o recálculo)
+  const trocoPara =
+    input.metodoPagamentoLocal === 'dinheiro' && input.trocoPara != null
+      ? input.trocoPara
+      : null;
+  if (trocoPara != null && (!Number.isFinite(trocoPara) || trocoPara <= 0)) {
+    return { erro: 'Valor de troco inválido.' };
   }
 
   const endereco = input.modalidade === 'entrega' ? input.endereco : null;
@@ -296,6 +311,10 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
   );
   const total = arredondar(subtotal + taxaEntrega + taxaServico);
 
+  if (trocoPara != null && trocoPara < total) {
+    return { erro: `O troco precisa cobrir o total do pedido (${total.toFixed(2)}).` };
+  }
+
   // 6. Número sequencial por pizzaria (função SQL atômica)
   const { data: numero, error: errNumero } = await admin.rpc('proximo_numero_pedido', {
     p_pizzaria: pizzaria.id,
@@ -322,6 +341,7 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
       total,
       forma_pagamento: input.formaPagamento,
       metodo_pagamento_local: input.metodoPagamentoLocal,
+      troco_para: trocoPara,
     })
     .select('id')
     .single();

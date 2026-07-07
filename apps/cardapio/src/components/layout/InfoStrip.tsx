@@ -40,21 +40,67 @@ export function InfoStrip() {
     pills.push({ valor: 'Sem taxa', rotulo: 'Retirada' });
   }
 
-  if (pills.length === 0) return null;
+  const temContato = pizzaria.endereco || pizzaria.instagram;
+  if (pills.length === 0 && !temContato) return null;
 
   return (
-    <div className="flex gap-2 sm:gap-3 mt-4">
-      {pills.map((pill) => (
-        <div
-          key={pill.rotulo}
-          className="flex-1 bg-white border border-borda-suave rounded-xl px-2 py-2 text-center"
-        >
-          <span className="block font-bold text-sm text-carbono">{pill.valor}</span>
-          <span className="block text-[0.65rem] uppercase tracking-wide text-creme-muted">
-            {pill.rotulo}
-          </span>
+    <div className="mt-4 space-y-2">
+      {pills.length > 0 && (
+        <div className="flex gap-2 sm:gap-3">
+          {pills.map((pill) => (
+            <div
+              key={pill.rotulo}
+              className="flex-1 bg-white border border-borda-suave rounded-xl px-2 py-2 text-center"
+            >
+              <span className="block font-bold text-sm text-carbono">{pill.valor}</span>
+              <span className="block text-[0.65rem] uppercase tracking-wide text-creme-muted">
+                {pill.rotulo}
+              </span>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
+
+      {/* endereço (quem retira precisa saber onde) + instagram */}
+      {temContato && (
+        <p className="text-xs text-creme-muted flex items-center gap-1.5 flex-wrap px-0.5">
+          {pizzaria.endereco && (
+            <span className="inline-flex items-center gap-1">
+              <IconePin />
+              {pizzaria.endereco}
+            </span>
+          )}
+          {pizzaria.endereco && pizzaria.instagram && <span aria-hidden="true">·</span>}
+          {pizzaria.instagram && (
+            <a
+              href={`https://instagram.com/${pizzaria.instagram}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold hover:text-carbono transition-colors"
+            >
+              @{pizzaria.instagram}
+            </a>
+          )}
+        </p>
+      )}
     </div>
+  );
+}
+
+function IconePin() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="w-3.5 h-3.5 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
   );
 }

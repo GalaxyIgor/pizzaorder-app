@@ -12,7 +12,7 @@ export async function GET(
   const { data: pizzaria, error: errPizzaria } = await supabase
     .from('pizzarias')
     .select(
-      'id, nome, slug, logo_url, cor_primaria, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_retirada, aceita_entrega, aceita_local, pedidos_pausados, horario_funcionamento'
+      'id, nome, slug, logo_url, cor_primaria, whatsapp, endereco, descricao, aviso, aviso_ativo, instagram, metodos_pagamento, config_meia_meia, config_frete, config_taxa_servico, pedido_minimo, aceita_retirada, aceita_entrega, aceita_local, pedidos_pausados, horario_funcionamento'
     )
     .eq('slug', slug)
     .eq('ativo', true)

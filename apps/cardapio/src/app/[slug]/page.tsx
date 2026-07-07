@@ -9,6 +9,7 @@
 
 import { Header } from '@/components/layout/Header';
 import { AvisoPausado } from '@/components/layout/AvisoPausado';
+import { AvisoLoja } from '@/components/layout/AvisoLoja';
 import { InfoStrip } from '@/components/layout/InfoStrip';
 import { ProductListModal } from '@/components/cardapio/modals/ProductListModal';
 import { CartFooter } from '@/components/carrinho/CartFooter';
@@ -26,6 +27,7 @@ function CardapioConteudo() {
     <div className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto p-4 sm:p-6 min-h-screen pb-24">
       <Header />
       <AvisoPausado />
+      <AvisoLoja />
       <InfoStrip />
       <CategoryButtons onOpen={abrirModal} />
 

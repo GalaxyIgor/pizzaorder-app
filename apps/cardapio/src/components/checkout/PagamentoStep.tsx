@@ -2,23 +2,45 @@
 
 // src/components/checkout/PagamentoStep.tsx
 //
-// Etapa 4: forma de pagamento. Na fase atual só "pagar na entrega/retirada"
-// (dinheiro/cartão/pix como preferência — sem cobrança). Mercado Pago entra
-// na fase 4 do plano e aparece desabilitado como "em breve".
+// Etapa 4: forma de pagamento. Na fase atual só "pagar na entrega/retirada",
+// limitado aos métodos que a pizzaria marcou na personalização. Dinheiro
+// pergunta "troco para quanto?" (opcional). Mercado Pago entra na fase 4 do
+// plano e aparece desabilitado como "em breve".
 
 import type { Modalidade, MetodoPagamentoLocal } from '@/types/pedido';
 import { METODO_PAGAMENTO_LABEL } from '@/types/pedido';
+import { formatarPreco } from '@/lib/cardapio';
 
 interface PagamentoStepProps {
   modalidade: Modalidade;
+  /** Métodos que a pizzaria aceita (personalização da gestão). */
+  metodosAceitos: MetodoPagamentoLocal[];
   metodo: MetodoPagamentoLocal | null;
   onMetodoChange: (metodo: MetodoPagamentoLocal) => void;
+  trocoPara: string;
+  onTrocoChange: (valor: string) => void;
+  /** Total do pedido (preview) — o troco precisa cobrir. */
+  total: number;
 }
 
-const METODOS: MetodoPagamentoLocal[] = ['dinheiro', 'cartao', 'pix'];
+const ORDEM: MetodoPagamentoLocal[] = ['dinheiro', 'cartao', 'pix'];
 
-export function PagamentoStep({ modalidade, metodo, onMetodoChange }: PagamentoStepProps) {
+export function PagamentoStep({
+  modalidade,
+  metodosAceitos,
+  metodo,
+  onMetodoChange,
+  trocoPara,
+  onTrocoChange,
+  total,
+}: PagamentoStepProps) {
   const rotulo = modalidade === 'entrega' ? 'Pagar na entrega' : 'Pagar no balcão';
+  // fallback: config antiga sem a coluna = aceita tudo
+  const metodos = ORDEM.filter((m) => metodosAceitos.length === 0 || metodosAceitos.includes(m));
+
+  const trocoNumero = Number(trocoPara.trim().replace(',', '.'));
+  const trocoInsuficiente =
+    trocoPara.trim() !== '' && Number.isFinite(trocoNumero) && trocoNumero < total;
 
   return (
     <div className="space-y-4">
@@ -30,7 +52,7 @@ export function PagamentoStep({ modalidade, metodo, onMetodoChange }: PagamentoS
           Você paga direto à pizzaria. Escolha como prefere pagar:
         </p>
         <div className="flex flex-wrap gap-2">
-          {METODOS.map((m) => (
+          {metodos.map((m) => (
             <button
               key={m}
               type="button"
@@ -46,6 +68,28 @@ export function PagamentoStep({ modalidade, metodo, onMetodoChange }: PagamentoS
             </button>
           ))}
         </div>
+
+        {metodo === 'dinheiro' && (
+          <div>
+            <label htmlFor="troco" className="block text-sm font-medium text-carbono mb-1">
+              Troco para quanto? — deixe vazio se não precisar
+            </label>
+            <input
+              id="troco"
+              type="text"
+              inputMode="decimal"
+              value={trocoPara}
+              onChange={(e) => onTrocoChange(e.target.value)}
+              placeholder="ex.: 100,00"
+              className="w-full border border-borda-suave rounded-lg p-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pomodoro/40"
+            />
+            {trocoInsuficiente && (
+              <p className="text-xs text-pomodoro mt-1">
+                O valor precisa cobrir o total do pedido ({formatarPreco(total)}).
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-borda-suave bg-white p-4 opacity-60">
