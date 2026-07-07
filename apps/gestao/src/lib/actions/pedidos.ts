@@ -28,12 +28,13 @@ export interface AtualizarStatusInput {
 
 /**
  * Transições que a GESTÃO pode fazer (subconjunto de TRANSICOES_STATUS).
- * aceito -> em_preparo e em_preparo -> pronto são gestos da cozinha.
+ * aceito -> em_preparo é gesto da cozinha; em_preparo -> pronto os dois podem
+ * (a gestão marca pronta quando a cozinha esquece ou não está com a tela aberta).
  */
 const TRANSICOES_GESTAO: Partial<Record<StatusPedido, StatusPedido[]>> = {
   pendente: ['aceito', 'cancelado'],
   aceito: ['cancelado'],
-  em_preparo: ['cancelado'],
+  em_preparo: ['pronto', 'cancelado'],
   pronto: ['saiu_para_entrega', 'concluido', 'cancelado'],
   saiu_para_entrega: ['concluido', 'cancelado'],
 };
