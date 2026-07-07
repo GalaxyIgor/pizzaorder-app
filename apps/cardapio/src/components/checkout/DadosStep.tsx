@@ -4,6 +4,8 @@
 //
 // Etapa 3: dados pessoais — nome/telefone pré-preenchidos do perfil, email read-only.
 
+import { formatarTelefone } from '@/lib/telefone';
+
 const inputClass =
   'w-full border border-borda-suave rounded-lg p-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pomodoro/40';
 
@@ -31,7 +33,7 @@ export function DadosStep({ nome, telefone, email, onNomeChange, onTelefoneChang
 
         <div>
           <label htmlFor="telefone" className="block text-sm font-medium text-carbono mb-1">Telefone (WhatsApp) *</label>
-          <input id="telefone" type="tel" required autoComplete="tel" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => onTelefoneChange(e.target.value)} className={inputClass} />
+          <input id="telefone" type="tel" required autoComplete="tel" inputMode="numeric" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => onTelefoneChange(formatarTelefone(e.target.value))} className={inputClass} />
         </div>
       </div>
 

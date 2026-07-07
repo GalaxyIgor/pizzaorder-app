@@ -15,6 +15,7 @@ import { useCart } from '@/contexts/CartContext';
 import { createClient } from '@/lib/supabase/client';
 import { criarPedido } from '@/lib/actions/pedidos';
 import { arredondar, calcularFrete, calcularTaxaServico } from '@/lib/frete';
+import { formatarTelefone } from '@/lib/telefone';
 import { formatarPreco } from '@/lib/cardapio';
 import { ModalidadeStep } from '@/components/checkout/ModalidadeStep';
 import { EnderecoStep } from '@/components/checkout/EnderecoStep';
@@ -85,7 +86,8 @@ export default function CheckoutPage() {
       if (cancelado) return;
       if (perfil) {
         setNome((atual) => atual || perfil.nome);
-        setTelefone((atual) => atual || (perfil.telefone ?? ''));
+        // perfis antigos podem ter o número sem máscara — normaliza na entrada
+        setTelefone((atual) => atual || formatarTelefone(perfil.telefone ?? ''));
       }
       if (salvos) setEnderecosSalvos(salvos as EnderecoSalvo[]);
     })();
