@@ -1,5 +1,13 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(node \"C:\\\\Users\\\\igorn\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-igorn-OneDrive-Documentos-GitHub-pizzaorder-app\\\\e42fdf28-7ce8-41d7-bee6-b6f178820287\\\\scratchpad\\\\diag.js\")",
+      "Bash(NODE_PATH=\"C:\\\\Users\\\\igorn\\\\OneDrive\\\\Documentos\\\\GitHub\\\\pizzaorder-app\\\\node_modules\" node \"C:\\\\Users\\\\igorn\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-igorn-OneDrive-Documentos-GitHub-pizzaorder-app\\\\e42fdf28-7ce8-41d7-bee6-b6f178820287\\\\scratchpad\\\\diag.js\")",
+      "PowerShell(npm run dev:cardapio)",
+      "Bash(npx tsc *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ],
     "deny": [
       "Read(.env)",
       "Read(.env.*)",
