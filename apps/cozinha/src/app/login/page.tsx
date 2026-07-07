@@ -10,6 +10,7 @@ import { Suspense, useActionState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn, type AuthState } from '@/lib/actions/auth';
 import { GoogleButton } from '@/components/GoogleButton';
+import { PasswordInput } from '@/components/PasswordInput';
 
 const estadoInicial: AuthState = {};
 
@@ -71,19 +72,13 @@ function LoginForm() {
             />
           </div>
 
-          <div>
-            <label htmlFor="senha" className="block text-sm font-medium text-carbono mb-1">
-              Senha
-            </label>
-            <input
-              id="senha"
-              name="senha"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="w-full border border-borda-suave rounded-lg p-3 text-sm bg-massa-bg focus:outline-none focus:ring-2 focus:ring-pomodoro/40"
-            />
-          </div>
+          <PasswordInput
+            id="senha"
+            name="senha"
+            label="Senha"
+            required
+            autoComplete="current-password"
+          />
 
           {state.erro && (
             <p role="alert" className="text-sm text-pomodoro bg-pomodoro/5 border border-pomodoro/20 rounded-lg p-3">
