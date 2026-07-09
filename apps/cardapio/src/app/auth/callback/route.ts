@@ -8,12 +8,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { supabase as admin } from '@/lib/supabase';
-
-/** Só permite redirects internos (evita open redirect via ?next=). */
-function destinoSeguro(destino: string | null, fallback: string): string {
-  if (destino && destino.startsWith('/') && !destino.startsWith('//')) return destino;
-  return fallback;
-}
+import { destinoSeguro } from '@/lib/redirect';
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code');

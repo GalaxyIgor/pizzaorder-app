@@ -9,16 +9,11 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { supabase as supabaseAdmin } from '@/lib/supabase';
 import { telefoneValido } from '@/lib/telefone';
+import { destinoSeguro } from '@/lib/redirect';
 
 export interface AuthState {
   erro?: string;
   sucesso?: string;
-}
-
-/** Só permite redirects internos (evita open redirect via ?redirect=). */
-function destinoSeguro(destino: string | null, fallback: string): string {
-  if (destino && destino.startsWith('/') && !destino.startsWith('//')) return destino;
-  return fallback;
 }
 
 export async function signIn(_prev: AuthState, formData: FormData): Promise<AuthState> {
