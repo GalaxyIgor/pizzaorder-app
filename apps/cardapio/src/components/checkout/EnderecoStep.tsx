@@ -7,6 +7,7 @@
 
 import { formatarPreco } from '@/lib/cardapio';
 import type { ResultadoFrete } from '@/lib/frete';
+import type { ConfigFrete } from '@/types/cardapio';
 import type { EnderecoEntrega, EnderecoSalvo } from '@/types/pedido';
 
 const inputClass =
@@ -20,6 +21,7 @@ interface EnderecoStepProps {
   enderecosSalvos: EnderecoSalvo[];
   onUsarSalvo: (endereco: EnderecoSalvo) => void;
   frete: ResultadoFrete | null;
+  configFrete: ConfigFrete;
 }
 
 export function EnderecoStep({
@@ -30,7 +32,23 @@ export function EnderecoStep({
   enderecosSalvos,
   onUsarSalvo,
   frete,
+  configFrete,
 }: EnderecoStepProps) {
+  // Frete por bairro: a pizzaria já mantém a lista de bairros atendidos, então
+  // usamos um select em vez de texto livre — elimina erro de digitação e o
+  // recálculo de frete a cada tecla (só dispara ao selecionar).
+  const bairrosConfig =
+    configFrete.tipo === 'por_bairro' ? configFrete.bairros ?? [] : [];
+  const usarSelectDeBairro = bairrosConfig.length > 0;
+
+  const bairroAtualNormalizado = endereco.bairro.trim().toLowerCase();
+  const bairroAtualNaLista = bairrosConfig.some(
+    (b) => b.bairro.trim().toLowerCase() === bairroAtualNormalizado
+  );
+
+  const opcoesBairro = [...bairrosConfig].sort((a, b) =>
+    a.bairro.localeCompare(b.bairro, 'pt-BR')
+  );
   return (
     <div className="space-y-4">
       <h2 className="font-display text-lg font-bold text-carbono">Endereço de entrega</h2>
@@ -73,7 +91,35 @@ export function EnderecoStep({
         </div>
         <div>
           <label htmlFor="bairro" className="block text-sm font-medium text-carbono mb-1">Bairro *</label>
-          <input id="bairro" type="text" required value={endereco.bairro} onChange={(e) => onChange('bairro', e.target.value)} className={inputClass} />
+          {usarSelectDeBairro ? (
+            <select
+              id="bairro"
+              required
+              value={bairroAtualNaLista ? endereco.bairro : endereco.bairro ? '__atual__' : ''}
+              onChange={(e) =>
+                onChange(
+                  'bairro',
+                  e.target.value === '__atual__' ? endereco.bairro : e.target.value
+                )
+              }
+              className={inputClass}
+            >
+              <option value="" disabled>
+                Selecione seu bairro
+              </option>
+              {!bairroAtualNaLista && endereco.bairro && (
+                <option value="__atual__">{endereco.bairro} (bairro não configurado)</option>
+              )}
+              {opcoesBairro.map((b) => (
+                <option key={b.bairro} value={b.bairro} disabled={!b.entrega}>
+                  {b.bairro}
+                  {!b.entrega ? ' (fora da área de entrega)' : ''}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input id="bairro" type="text" required value={endereco.bairro} onChange={(e) => onChange('bairro', e.target.value)} className={inputClass} />
+          )}
         </div>
       </div>
 

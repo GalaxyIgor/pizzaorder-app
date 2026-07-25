@@ -346,6 +346,7 @@ export default function CheckoutPage() {
             })
           }
           frete={endereco.bairro.trim() || frete?.entrega === false ? frete : null}
+          configFrete={pizzaria.config_frete}
         />
       )}
       {etapa === 'dados' && (
