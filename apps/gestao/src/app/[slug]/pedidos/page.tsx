@@ -16,7 +16,8 @@ export default async function PedidosPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { pizzaria } = await exigirStaff(slug);
+  const staff = await exigirStaff(slug);
+  const { pizzaria } = staff;
 
   const supabase = await createClient();
   const { data: pedidos } = await supabase
@@ -28,7 +29,7 @@ export default async function PedidosPage({
 
   return (
     <div className="space-y-4">
-      <ResumoDia pizzariaId={pizzaria.id} />
+      <ResumoDia staff={staff} />
       <PainelPedidosGestao
         slug={slug}
         pizzariaId={pizzaria.id}

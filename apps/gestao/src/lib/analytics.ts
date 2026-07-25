@@ -1,7 +1,8 @@
 // src/lib/analytics.ts
 //
-// Agregações do dashboard. Leitura via service-role (chamar SEMPRE depois de
-// exigirStaff) e agregação em JS — o volume de uma pizzaria (centenas de
+// Agregações do dashboard. Leitura via service-role, mas as funções exigem o
+// StaffContext devolvido por exigirStaff() — sem passar pelo guard não há como
+// chamá-las. Agregação em JS: o volume de uma pizzaria (centenas de
 // pedidos/mês) dispensa views SQL.
 //
 // Regra de faturamento: todo pedido não-cancelado do período conta (pedido
@@ -9,6 +10,7 @@
 
 import type { Modalidade } from '@pizzaorder/shared';
 import { supabase as admin } from '@/lib/supabase';
+import type { StaffContext } from '@/lib/staff';
 import { diaLocalDe, type IntervaloPeriodo } from '@/lib/datas';
 
 export interface PedidoAgregavel {
@@ -22,13 +24,13 @@ export interface PedidoAgregavel {
 
 /** Uma busca por período — as funções puras abaixo agregam sobre o resultado. */
 export async function carregarPedidosPeriodo(
-  pizzariaId: string,
+  staff: StaffContext,
   intervalo: IntervaloPeriodo
 ): Promise<PedidoAgregavel[]> {
   const { data, error } = await admin
     .from('pedidos')
     .select('numero, total, modalidade, status, criado_em, motivo_cancelamento')
-    .eq('pizzaria_id', pizzariaId)
+    .eq('pizzaria_id', staff.pizzaria.id)
     .gte('criado_em', intervalo.inicioISO)
     .lt('criado_em', intervalo.fimISO)
     .order('criado_em', { ascending: false });
@@ -99,7 +101,7 @@ export interface ProdutoRanqueado {
 }
 
 export async function produtosMaisVendidos(
-  pizzariaId: string,
+  staff: StaffContext,
   intervalo: IntervaloPeriodo,
   limite = 10
 ): Promise<ProdutoRanqueado[]> {
@@ -107,7 +109,7 @@ export async function produtosMaisVendidos(
   const { data, error } = await admin
     .from('itens_pedido')
     .select('nome, quantidade, preco_unit, pedidos!inner(pizzaria_id, status, criado_em)')
-    .eq('pedidos.pizzaria_id', pizzariaId)
+    .eq('pedidos.pizzaria_id', staff.pizzaria.id)
     .neq('pedidos.status', 'cancelado')
     .gte('pedidos.criado_em', intervalo.inicioISO)
     .lt('pedidos.criado_em', intervalo.fimISO);

@@ -32,12 +32,12 @@ export default async function DashboardPage({
     ? (periodoParam as Periodo)
     : 'hoje';
 
-  const { pizzaria } = await exigirStaff(slug);
+  const staff = await exigirStaff(slug);
   const intervalo = intervaloPeriodo(periodo);
 
   const [pedidos, topProdutos] = await Promise.all([
-    carregarPedidosPeriodo(pizzaria.id, intervalo),
-    produtosMaisVendidos(pizzaria.id, intervalo),
+    carregarPedidosPeriodo(staff, intervalo),
+    produtosMaisVendidos(staff, intervalo),
   ]);
   const resumo = resumirPedidos(pedidos);
   const porDia = faturamentoPorDia(pedidos, intervalo);

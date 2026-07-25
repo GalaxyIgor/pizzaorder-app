@@ -48,6 +48,10 @@ interface OpcaoRow {
 const ERRO_ITEM_INDISPONIVEL =
   'Um item da sua sacola não está mais disponível. Volte ao cardápio e revise a sacola.';
 
+// Rate limit: um cliente real não faz mais que isso; acima é engano ou abuso.
+const LIMITE_PEDIDOS_JANELA = 3;
+const JANELA_LIMITE_MINUTOS = 10;
+
 function menorPrecoDisponivel(variacoes: { preco: number; disponivel: boolean }[]): number | null {
   const precos = variacoes.filter((v) => v.disponivel).map((v) => v.preco);
   return precos.length > 0 ? Math.min(...precos) : null;
@@ -315,7 +319,23 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
     return { erro: `O troco precisa cobrir o total do pedido (${total.toFixed(2)}).` };
   }
 
-  // 6. Número sequencial por pizzaria (função SQL atômica)
+  // 6. Rate limit por cliente (todas as pizzarias) antes de consumir o número
+  const desde = new Date(Date.now() - JANELA_LIMITE_MINUTOS * 60_000).toISOString();
+  const { count: pedidosRecentes, error: errLimite } = await admin
+    .from('pedidos')
+    .select('id', { count: 'exact', head: true })
+    .eq('cliente_id', user.id)
+    .gte('criado_em', desde);
+  if (errLimite) {
+    return { erro: 'Erro ao registrar o pedido. Tente novamente.' };
+  }
+  if ((pedidosRecentes ?? 0) >= LIMITE_PEDIDOS_JANELA) {
+    return {
+      erro: 'Você fez vários pedidos em poucos minutos. Aguarde um pouco antes de pedir de novo.',
+    };
+  }
+
+  // 7. Número sequencial por pizzaria (função SQL atômica)
   const { data: numero, error: errNumero } = await admin.rpc('proximo_numero_pedido', {
     p_pizzaria: pizzaria.id,
   });
@@ -323,7 +343,7 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
     return { erro: 'Erro ao registrar o pedido. Tente novamente.' };
   }
 
-  // 7. Insere pedido + itens (INSERT é exclusivo do service-role — RLS bloqueia o client)
+  // 8. Insere pedido + itens (INSERT é exclusivo do service-role — RLS bloqueia o client)
   const { data: pedido, error: errPedido } = await admin
     .from('pedidos')
     .insert({
@@ -360,7 +380,7 @@ export async function criarPedido(input: CriarPedidoInput): Promise<PedidoErro> 
     return { erro: 'Erro ao registrar os itens do pedido. Tente novamente.' };
   }
 
-  // 8. Extras best-effort (não derrubam o pedido já gravado)
+  // 9. Extras best-effort (não derrubam o pedido já gravado)
 
   // Mantém o perfil com o último nome/telefone: quem entra pelo Google não
   // passa pelo cadastro, então é AQUI que o telefone chega ao perfil.

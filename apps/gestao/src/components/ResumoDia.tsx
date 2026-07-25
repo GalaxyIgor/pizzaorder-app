@@ -5,11 +5,12 @@
 
 import { formatarPreco } from '@pizzaorder/shared';
 import { carregarPedidosPeriodo, resumirPedidos } from '@/lib/analytics';
+import type { StaffContext } from '@/lib/staff';
 import { intervaloPeriodo } from '@/lib/datas';
 import { Tile } from '@/components/Tile';
 
-export async function ResumoDia({ pizzariaId }: { pizzariaId: string }) {
-  const pedidos = await carregarPedidosPeriodo(pizzariaId, intervaloPeriodo('hoje'));
+export async function ResumoDia({ staff }: { staff: StaffContext }) {
+  const pedidos = await carregarPedidosPeriodo(staff, intervaloPeriodo('hoje'));
   const resumo = resumirPedidos(pedidos);
 
   return (
