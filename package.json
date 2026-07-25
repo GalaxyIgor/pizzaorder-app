@@ -6,6 +6,10 @@
     "apps/*",
     "packages/*"
   ],
+  "overrides": {
+    "sharp": "^0.35.0",
+    "postcss": "^8.5.18"
+  },
   "scripts": {
     "dev": "npm run dev --workspace apps/cardapio",
     "dev:cardapio": "npm run dev --workspace apps/cardapio",
