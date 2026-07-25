@@ -144,37 +144,40 @@ create policy combos_produtos_select_public on public.combos_produtos
 
 -- ---------------------------------------------------------------------------
 -- 4. Dados do cliente (dono da linha)
+--
+-- (select auth.uid()) em vez de auth.uid(): o Postgres avalia como InitPlan
+-- (uma vez por query, não por linha) — recomendação oficial da Supabase.
 -- ---------------------------------------------------------------------------
 
 create policy perfis_select_own on public.perfis
   for select to authenticated
-  using (id = auth.uid());
+  using (id = (select auth.uid()));
 
 create policy perfis_update_own on public.perfis
   for update to authenticated
-  using (id = auth.uid())
-  with check (id = auth.uid());
+  using (id = (select auth.uid()))
+  with check (id = (select auth.uid()));
 
 create policy enderecos_select_own on public.enderecos_cliente
   for select to authenticated
-  using (cliente_id = auth.uid());
+  using (cliente_id = (select auth.uid()));
 
 create policy enderecos_insert_own on public.enderecos_cliente
   for insert to authenticated
-  with check (cliente_id = auth.uid());
+  with check (cliente_id = (select auth.uid()));
 
 create policy enderecos_update_own on public.enderecos_cliente
   for update to authenticated
-  using (cliente_id = auth.uid())
-  with check (cliente_id = auth.uid());
+  using (cliente_id = (select auth.uid()))
+  with check (cliente_id = (select auth.uid()));
 
 create policy enderecos_delete_own on public.enderecos_cliente
   for delete to authenticated
-  using (cliente_id = auth.uid());
+  using (cliente_id = (select auth.uid()));
 
 create policy pedidos_select_own on public.pedidos
   for select to authenticated
-  using (cliente_id = auth.uid());
+  using (cliente_id = (select auth.uid()));
 
 -- ---------------------------------------------------------------------------
 -- 5. Staff (gestão e cozinha): lê os pedidos da própria pizzaria
@@ -182,14 +185,14 @@ create policy pedidos_select_own on public.pedidos
 
 create policy staff_select_own on public.staff_pizzaria
   for select to authenticated
-  using (user_id = auth.uid());
+  using (user_id = (select auth.uid()));
 
 create policy pedidos_select_staff on public.pedidos
   for select to authenticated
   using (
     exists (
       select 1 from public.staff_pizzaria s
-      where s.user_id = auth.uid() and s.pizzaria_id = pizzaria_id
+      where s.user_id = (select auth.uid()) and s.pizzaria_id = pizzaria_id
     )
   );
 
@@ -200,10 +203,10 @@ create policy itens_pedido_select_own_ou_staff on public.itens_pedido
       select 1 from public.pedidos p
       where p.id = pedido_id
         and (
-          p.cliente_id = auth.uid()
+          p.cliente_id = (select auth.uid())
           or exists (
             select 1 from public.staff_pizzaria s
-            where s.user_id = auth.uid() and s.pizzaria_id = p.pizzaria_id
+            where s.user_id = (select auth.uid()) and s.pizzaria_id = p.pizzaria_id
           )
         )
     )
