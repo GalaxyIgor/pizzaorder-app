@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # Monorepo npm workspaces (apps/*, packages/*): o lockfile é único na raiz,
+  # então um só directory "/" cobre as 3 apps + packages/shared.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      next:
+        patterns:
+          - "next"
+          - "@next/*"
+      supabase:
+        patterns:
+          - "@supabase/*"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
