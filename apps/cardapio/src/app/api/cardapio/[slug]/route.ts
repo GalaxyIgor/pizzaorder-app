@@ -1,6 +1,9 @@
 // src/app/api/cardapio/[slug]/route.ts
+//
+// Rota pública: usa o client anon (RLS de catálogo público), não o
+// service-role — dados aqui são exatamente os que as policies liberam.
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAnon as supabase } from '@/lib/supabase/anon';
 
 export async function GET(
   _req: NextRequest,

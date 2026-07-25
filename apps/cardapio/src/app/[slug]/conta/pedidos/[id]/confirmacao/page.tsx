@@ -7,7 +7,6 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { supabase as admin } from '@/lib/supabase';
 import { formatarPreco } from '@/lib/cardapio';
 import { LimparCarrinho } from '@/components/conta/LimparCarrinho';
 import { METODO_PAGAMENTO_LABEL, type PedidoDetalhe } from '@/types/pedido';
@@ -47,13 +46,13 @@ export default async function ConfirmacaoPage({
   // whatsapp/endereco podem ainda não existir no banco (scripts incrementais
   // pendentes): nesse caso cai no fallback só com o nome.
   let pizzaria: { nome: string; whatsapp?: string | null; endereco?: string | null } | null = null;
-  const completo = await admin
+  const completo = await supabase
     .from('pizzarias')
     .select('nome, whatsapp, endereco')
     .eq('slug', slug)
     .single();
   if (completo.error) {
-    const soNome = await admin.from('pizzarias').select('nome').eq('slug', slug).single();
+    const soNome = await supabase.from('pizzarias').select('nome').eq('slug', slug).single();
     pizzaria = soNome.data;
   } else {
     pizzaria = completo.data;

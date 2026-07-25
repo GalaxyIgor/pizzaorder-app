@@ -6,7 +6,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { supabase as admin } from '@/lib/supabase';
 import { formatarPreco } from '@/lib/cardapio';
 import { StatusBadge } from '@/components/conta/StatusBadge';
 import { PedidoStatusLive } from '@/components/conta/PedidoStatusLive';
@@ -25,7 +24,7 @@ export default async function MeusPedidosPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${slug}/entrar?redirect=${encodeURIComponent(`/${slug}/conta/pedidos`)}`);
 
-  const { data: pizzaria } = await admin
+  const { data: pizzaria } = await supabase
     .from('pizzarias')
     .select('id, nome')
     .eq('slug', slug)

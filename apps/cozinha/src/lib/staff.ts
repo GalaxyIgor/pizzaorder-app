@@ -5,7 +5,6 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { supabase as admin } from '@/lib/supabase';
 
 export interface PizzariaCozinha {
   id: string;
@@ -30,7 +29,9 @@ export async function exigirStaff(slug: string): Promise<StaffContext> {
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: pizzaria } = await admin
+  // Leituras via client SSR (anon+RLS): pizzarias_select_public cobre a loja
+  // ativa (colunas no column-grant) e staff_select_own cobre o vínculo.
+  const { data: pizzaria } = await supabase
     .from('pizzarias')
     .select('id, nome, slug, pedidos_pausados')
     .eq('slug', slug)
@@ -38,7 +39,7 @@ export async function exigirStaff(slug: string): Promise<StaffContext> {
     .single();
   if (!pizzaria) redirect('/');
 
-  const { data: vinculo } = await admin
+  const { data: vinculo } = await supabase
     .from('staff_pizzaria')
     .select('user_id')
     .eq('user_id', user.id)
