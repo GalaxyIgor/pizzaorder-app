@@ -127,7 +127,7 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
               {produto.imagem_url ? (
                 <Image src={produto.imagem_url} alt={produto.nome} fill sizes="96px" className="object-cover" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
+                <div className="w-full h-full bg-linear-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
                   <span className="text-3xl">🍕</span>
                 </div>
               )}

@@ -436,7 +436,7 @@ export default function CheckoutPage() {
       </div>
 
       {/* Rodapé fixo (só mobile) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-center z-40">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-linear-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-center z-40">
         <div className="w-full max-w-md">{cta}</div>
       </div>
     </div>

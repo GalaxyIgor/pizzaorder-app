@@ -60,7 +60,7 @@ export function CategoryButtons({ onOpen }: CategoryButtonsProps) {
       chip: maisPedida
         ? `🔥 A mais pedida: ${maisPedida}`
         : `${pizzas.length} ${pizzas.length === 1 ? 'sabor' : 'sabores'}`,
-      classes: 'bg-gradient-to-br from-pomodoro to-pomodoro-hover text-white',
+      classes: 'bg-linear-to-br from-pomodoro to-pomodoro-hover text-white',
       chipClasses: 'bg-white/15 text-white',
     },
     {
@@ -69,7 +69,7 @@ export function CategoryButtons({ onOpen }: CategoryButtonsProps) {
       titulo: 'Meia a Meia',
       descricao: 'Dois sabores na mesma pizza',
       chip: 'Você escolhe as duas metades',
-      classes: 'bg-gradient-to-br from-manjericao to-manjericao/80 text-white',
+      classes: 'bg-linear-to-br from-manjericao to-manjericao/80 text-white',
       chipClasses: 'bg-white/15 text-white',
     },
     {
@@ -78,7 +78,7 @@ export function CategoryButtons({ onOpen }: CategoryButtonsProps) {
       titulo: 'Bebidas',
       descricao: 'Refrigerantes e sucos gelados',
       chip: menorPrecoBebida > 0 ? `A partir de ${formatarPreco(menorPrecoBebida)}` : 'Refrescos e sucos',
-      classes: 'bg-gradient-to-br from-ouro to-ouro/80 text-carbono',
+      classes: 'bg-linear-to-br from-ouro to-ouro/80 text-carbono',
       chipClasses: 'bg-carbono/10 text-carbono',
     },
     {
@@ -90,7 +90,7 @@ export function CategoryButtons({ onOpen }: CategoryButtonsProps) {
         menorPrecoSobremesa > 0
           ? `A partir de ${formatarPreco(menorPrecoSobremesa)}`
           : 'Doces da casa',
-      classes: 'bg-gradient-to-br from-cacau to-cacau/80 text-white',
+      classes: 'bg-linear-to-br from-cacau to-cacau/80 text-white',
       chipClasses: 'bg-white/15 text-white',
       // só aparece quando o tenant cadastrou sobremesas (categoria tipo 'sobremesa')
       oculto: sobremesas.length === 0,
@@ -101,7 +101,7 @@ export function CategoryButtons({ onOpen }: CategoryButtonsProps) {
       titulo: 'Combos',
       descricao: 'Pizza + bebida com preço fechado',
       chip: economiaCombo > 0 ? `💰 Economize até ${formatarPreco(economiaCombo)}` : 'Preço fechado',
-      classes: 'bg-gradient-to-br from-carbono to-carbono/80 text-white',
+      classes: 'bg-linear-to-br from-carbono to-carbono/80 text-white',
       chipClasses: 'bg-white/15 text-white',
     },
   ];

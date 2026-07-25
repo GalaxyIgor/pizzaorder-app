@@ -34,7 +34,7 @@ export function ProductOptionCard({
             ? 'border-ouro bg-ouro/5 ring-1 ring-ouro shadow-xs'
             : selectedSide === 2
             ? 'border-pomodoro bg-pomodoro/5 ring-1 ring-pomodoro shadow-xs'
-            : 'border-ouro/70 bg-gradient-to-r from-ouro/10 via-white to-pomodoro/10 ring-1 ring-ouro/50 shadow-xs'
+            : 'border-ouro/70 bg-linear-to-r from-ouro/10 via-white to-pomodoro/10 ring-1 ring-ouro/50 shadow-xs'
           : 'border-borda-suave hover:border-ouro/60 hover:shadow-sm'
       }`}
     >
@@ -50,7 +50,7 @@ export function ProductOptionCard({
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
+            <div className="w-full h-full bg-linear-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
               <span className="text-2xl">🍕</span>
             </div>
           )}
@@ -58,7 +58,7 @@ export function ProductOptionCard({
             <span
               className={`absolute right-1 top-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm ${
                 selectedSide === 'both'
-                  ? 'bg-gradient-to-r from-ouro to-pomodoro'
+                  ? 'bg-linear-to-r from-ouro to-pomodoro'
                   : selectedSide === 1
                   ? 'bg-ouro'
                   : 'bg-pomodoro'

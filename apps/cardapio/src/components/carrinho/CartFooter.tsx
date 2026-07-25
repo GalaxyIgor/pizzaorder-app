@@ -22,7 +22,7 @@ export function CartFooter() {
   return (
     <>
       {totalItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-center z-40">
+        <div className="fixed bottom-0 left-0 right-0 bg-linear-to-t from-massa-bg via-massa-bg/90 to-transparent p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex justify-center z-40">
           <button
             type="button"
             onClick={() => podeComprar && setAberto(true)}
