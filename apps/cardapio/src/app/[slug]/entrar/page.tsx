@@ -2,7 +2,8 @@
 
 // src/app/[slug]/entrar/page.tsx
 //
-// Login: Google (caminho principal) ou email+senha (contas antigas).
+// Login: pedir sem cadastro (caminho principal — sessão anônima), Google
+// (histórico em qualquer aparelho) ou email+senha (contas antigas).
 // Aceita ?redirect= para voltar aonde o cliente estava
 // (ex.: /[slug]/checkout, injetado pelo src/proxy.ts).
 
@@ -11,6 +12,7 @@ import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { signIn, type AuthState } from '@/lib/actions/auth';
 import { GoogleButton } from '@/components/auth/GoogleButton';
+import { GuestButton } from '@/components/auth/GuestButton';
 import { PasswordInput } from '@/components/auth/PasswordInput';
 
 const estadoInicial: AuthState = {};
@@ -34,9 +36,9 @@ function EntrarForm() {
   return (
     <div className="max-w-full sm:max-w-md mx-auto p-4 py-8 min-h-dvh flex flex-col justify-center">
       <div className="bg-white border border-borda-suave rounded-2xl p-6 shadow-sm">
-        <h1 className="font-display text-2xl font-bold text-carbono mb-1">Entrar</h1>
+        <h1 className="font-display text-2xl font-bold text-carbono mb-1">Quase lá!</h1>
         <p className="text-sm text-creme-muted mb-6">
-          Entre para finalizar seu pedido e acompanhar o status.
+          Peça direto sem cadastro, ou entre com sua conta para ver seus pedidos em qualquer aparelho.
         </p>
 
         {erroGoogle && (
@@ -45,7 +47,15 @@ function EntrarForm() {
           </p>
         )}
 
-        <GoogleButton next={redirect || `/${slug}`} />
+        <GuestButton next={redirect || `/${slug}`} />
+
+        <div className="flex items-center gap-3 my-5">
+          <span className="h-px flex-1 bg-borda-suave" aria-hidden="true" />
+          <span className="text-xs text-creme-muted">ou entre com sua conta</span>
+          <span className="h-px flex-1 bg-borda-suave" aria-hidden="true" />
+        </div>
+
+        <GoogleButton next={redirect || `/${slug}`} compact />
 
         <div className="flex items-center gap-3 my-5">
           <span className="h-px flex-1 bg-borda-suave" aria-hidden="true" />

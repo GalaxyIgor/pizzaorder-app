@@ -12,9 +12,11 @@ import { createClient } from '@/lib/supabase/client';
 interface Props {
   /** Destino interno pós-login (o callback valida; default: raiz). */
   next?: string;
+  /** Versão menor, para quando o Google não é o caminho principal da tela. */
+  compact?: boolean;
 }
 
-export function GoogleButton({ next }: Props) {
+export function GoogleButton({ next, compact }: Props) {
   const [pending, setPending] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -40,9 +42,11 @@ export function GoogleButton({ next }: Props) {
         type="button"
         onClick={entrar}
         disabled={pending}
-        className="w-full flex items-center justify-center gap-3 border-2 border-borda-suave hover:border-carbono/30 disabled:opacity-60 bg-white text-carbono p-3 rounded-lg font-semibold transition-colors active:scale-[0.99]"
+        className={`w-full flex items-center justify-center border-2 border-borda-suave hover:border-carbono/30 disabled:opacity-60 bg-white text-carbono rounded-lg font-semibold transition-colors active:scale-[0.99] ${
+          compact ? 'gap-2 p-2 text-sm' : 'gap-3 p-3'
+        }`}
       >
-        <IconeGoogle />
+        <IconeGoogle small={compact} />
         {pending ? 'Abrindo o Google...' : 'Continuar com o Google'}
       </button>
       {erro && (
@@ -54,9 +58,9 @@ export function GoogleButton({ next }: Props) {
   );
 }
 
-function IconeGoogle() {
+function IconeGoogle({ small }: { small?: boolean }) {
   return (
-    <svg viewBox="0 0 48 48" className="w-5 h-5 shrink-0" aria-hidden="true">
+    <svg viewBox="0 0 48 48" className={`${small ? 'w-4 h-4' : 'w-5 h-5'} shrink-0`} aria-hidden="true">
       <path
         fill="#FFC107"
         d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"

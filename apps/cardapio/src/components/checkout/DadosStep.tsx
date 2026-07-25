@@ -37,11 +37,14 @@ export function DadosStep({ nome, telefone, email, onNomeChange, onTelefoneChang
         </div>
       </div>
 
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-carbono mb-1">Email</label>
-        <input id="email" type="email" value={email} readOnly disabled className={`${inputClass} opacity-60 cursor-not-allowed`} />
-        <p className="text-xs text-creme-muted mt-1">O email é o da sua conta e não pode ser alterado aqui.</p>
-      </div>
+      {/* Convidado (sessão anônima) não tem email — o campo só aparece p/ conta real */}
+      {email && (
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-carbono mb-1">Email</label>
+          <input id="email" type="email" value={email} readOnly disabled className={`${inputClass} opacity-60 cursor-not-allowed`} />
+          <p className="text-xs text-creme-muted mt-1">O email é o da sua conta e não pode ser alterado aqui.</p>
+        </div>
+      )}
     </div>
   );
 }
