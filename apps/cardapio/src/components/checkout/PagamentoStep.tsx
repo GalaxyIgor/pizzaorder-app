@@ -44,7 +44,7 @@ export function PagamentoStep({
 
   return (
     <div className="space-y-4">
-      <h2 className="font-display text-lg font-bold text-carbono">Pagamento</h2>
+      <h2 tabIndex={-1} className="font-display text-lg font-bold text-carbono outline-none">Pagamento</h2>
 
       <div className="rounded-xl border border-pomodoro bg-pomodoro/5 p-4 space-y-3">
         <p className="font-semibold text-sm text-carbono">{rotulo}</p>
@@ -58,7 +58,7 @@ export function PagamentoStep({
               type="button"
               onClick={() => onMetodoChange(m)}
               aria-pressed={metodo === m}
-              className={`text-sm rounded-full px-4 py-2 border transition-colors ${
+              className={`text-sm rounded-full px-5 py-2.5 border transition-colors ${
                 metodo === m
                   ? 'border-pomodoro bg-pomodoro text-white font-semibold'
                   : 'border-borda-suave bg-white text-carbono hover:border-pomodoro'
@@ -72,19 +72,22 @@ export function PagamentoStep({
         {metodo === 'dinheiro' && (
           <div>
             <label htmlFor="troco" className="block text-sm font-medium text-carbono mb-1">
-              Troco para quanto? — deixe vazio se não precisar
+              Troco para quanto?{' '}
+              <span className="font-normal text-creme-muted">(deixe vazio se não precisar)</span>
             </label>
             <input
               id="troco"
+              name="troco"
+              autoComplete="off"
               type="text"
               inputMode="decimal"
               value={trocoPara}
               onChange={(e) => onTrocoChange(e.target.value)}
-              placeholder="ex.: 100,00"
+              placeholder="Ex.: 100,00"
               className="w-full border border-borda-suave rounded-lg p-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pomodoro/40"
             />
             {trocoInsuficiente && (
-              <p className="text-xs text-pomodoro mt-1">
+              <p role="alert" className="text-xs text-pomodoro mt-1">
                 O valor precisa cobrir o total do pedido ({formatarPreco(total)}).
               </p>
             )}
@@ -92,7 +95,7 @@ export function PagamentoStep({
         )}
       </div>
 
-      <div className="rounded-xl border border-borda-suave bg-white p-4 opacity-60">
+      <div className="rounded-xl border border-borda-suave bg-white p-4 opacity-60" aria-disabled="true">
         <p className="font-semibold text-sm text-carbono flex items-center gap-2">
           Pagar online agora
           <span className="text-[10px] font-bold uppercase tracking-wide bg-ouro/20 text-carbono rounded-full px-2 py-0.5">

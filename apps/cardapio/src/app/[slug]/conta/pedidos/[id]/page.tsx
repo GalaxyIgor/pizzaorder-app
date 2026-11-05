@@ -31,22 +31,25 @@ export default async function PedidoPage({
     redirect(`/${slug}/entrar?redirect=${encodeURIComponent(`/${slug}/conta/pedidos/${id}`)}`);
   }
 
-  const { data: pedido } = await supabase
-    .from('pedidos')
-    .select(
-      'id, numero, status, modalidade, total, criado_em, previsao_pronto_em, nome_cliente, telefone_cliente, endereco_entrega, observacao, subtotal, taxa_entrega, taxa_servico, forma_pagamento, metodo_pagamento_local, status_pagamento'
-    )
-    .eq('id', id)
-    .single();
+  // Itens filtram pelo id da URL (não dependem do pedido): as duas consultas
+  // vão juntas. O RLS decide o que este usuário enxerga em cada uma.
+  const [{ data: pedido }, { data: itens }] = await Promise.all([
+    supabase
+      .from('pedidos')
+      .select(
+        'id, numero, status, modalidade, total, criado_em, previsao_pronto_em, nome_cliente, telefone_cliente, endereco_entrega, observacao, subtotal, taxa_entrega, taxa_servico, forma_pagamento, metodo_pagamento_local, status_pagamento'
+      )
+      .eq('id', id)
+      .single(),
+    supabase
+      .from('itens_pedido')
+      .select('id, tipo, nome, descricao, tamanho, preco_unit, quantidade, sabores, adicionais')
+      .eq('pedido_id', id),
+  ]);
 
   if (!pedido) notFound();
 
   const detalhe = pedido as PedidoDetalhe;
-
-  const { data: itens } = await supabase
-    .from('itens_pedido')
-    .select('id, tipo, nome, descricao, tamanho, preco_unit, quantidade, sabores, adicionais')
-    .eq('pedido_id', id);
 
   const linhas = (itens ?? []) as ItemPedidoRow[];
 

@@ -32,7 +32,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@pizzaorder/shared'],
+  transpilePackages: ['@pizzaorder/shared', '@pizzaorder/supabase-mock'],
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

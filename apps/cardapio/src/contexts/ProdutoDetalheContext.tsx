@@ -6,13 +6,20 @@
 // `adicionarMeiaMeia(p1, p2)`, que decidem entre abrir o modal de detalhe
 // (quando há tamanho/adicionais a escolher) ou adicionar direto ao carrinho.
 
+import dynamic from 'next/dynamic';
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import type { GrupoAdicional, Produto } from '@/types/cardapio';
 import { gruposPorCategoria, precisaPersonalizar, tamanhosComunsMeiaMeia } from '@/lib/cardapio';
 import { useCardapio } from '@/contexts/CardapioContext';
 import { useCart } from '@/contexts/CartContext';
-import { ProdutoDetalheModal } from '@/components/cardapio/modals/ProdutoDetalheModal';
-import { MeiaMeiaDetalheModal } from '@/components/cardapio/modals/MeiaMeiaDetalheModal';
+
+// Modais só existem depois de um clique: chunk separado, fora do JS inicial.
+const ProdutoDetalheModal = dynamic(() =>
+  import('@/components/cardapio/modals/ProdutoDetalheModal').then((m) => m.ProdutoDetalheModal)
+);
+const MeiaMeiaDetalheModal = dynamic(() =>
+  import('@/components/cardapio/modals/MeiaMeiaDetalheModal').then((m) => m.MeiaMeiaDetalheModal)
+);
 
 type DetalheItem =
   | { tipo: 'produto'; produto: Produto }

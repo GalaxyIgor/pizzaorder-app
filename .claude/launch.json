@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "cardapio-mock",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/dev-mock.mjs", "cardapio"],
+      "port": 3000
+    },
+    {
+      "name": "gestao-mock",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/dev-mock.mjs", "gestao"],
+      "port": 3002
+    }
+  ]
+}

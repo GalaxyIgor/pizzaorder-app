@@ -5,11 +5,16 @@
 
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { isSupabaseMock } from '@pizzaorder/supabase-mock/flag';
+import { createMockServerClient } from '@pizzaorder/supabase-mock/server';
 
 export async function createClient() {
   const cookieStore = await cookies();
+  const criar = isSupabaseMock()
+    ? (createMockServerClient as unknown as typeof createServerClient)
+    : createServerClient;
 
-  return createServerClient(
+  return criar(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

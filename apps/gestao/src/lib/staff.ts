@@ -4,6 +4,7 @@
 // O proxy é só UX; a autorização de verdade (vínculo em staff_pizzaria) é aqui.
 // Por ora qualquer vínculo acessa a gestão (sem exigir papel 'gerente').
 
+import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
@@ -22,22 +23,31 @@ export interface StaffContext {
 /**
  * Garante usuário logado E vinculado à pizzaria do slug.
  * Redireciona para /login (deslogado) ou / (sem vínculo com este slug).
+ *
+ * cache(): layout e page chamam no mesmo request — a checagem roda uma vez só.
+ * (Fora de render, como em Server Actions, o cache não se aplica: roda sempre.)
  */
-export async function exigirStaff(slug: string): Promise<StaffContext> {
+export const exigirStaff = cache(async (slug: string): Promise<StaffContext> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
 
   // Leituras via client SSR (anon+RLS): pizzarias_select_public cobre a loja
   // ativa (colunas no column-grant) e staff_select_own cobre o vínculo.
-  const { data: pizzaria } = await supabase
-    .from('pizzarias')
-    .select('id, nome, slug, pedidos_pausados')
-    .eq('slug', slug)
-    .eq('ativo', true)
-    .single();
+  // A loja não depende do usuário: as duas consultas vão juntas.
+  const [
+    {
+      data: { user },
+    },
+    { data: pizzaria },
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from('pizzarias')
+      .select('id, nome, slug, pedidos_pausados')
+      .eq('slug', slug)
+      .eq('ativo', true)
+      .single(),
+  ]);
+  if (!user) redirect('/login');
   if (!pizzaria) redirect('/');
 
   const { data: vinculo } = await supabase
@@ -49,7 +59,7 @@ export async function exigirStaff(slug: string): Promise<StaffContext> {
   if (!vinculo) redirect('/');
 
   return { userId: user.id, pizzaria: pizzaria as PizzariaGestao };
-}
+});
 
 export interface VinculoStaff {
   pizzaria_id: string;

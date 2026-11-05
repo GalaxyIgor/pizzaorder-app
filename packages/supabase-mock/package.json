@@ -1,0 +1,16 @@
+{
+  "name": "@pizzaorder/supabase-mock",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server": "./src/server.ts",
+    "./browser": "./src/browser.ts",
+    "./route": "./src/route.ts",
+    "./flag": "./src/flag.ts"
+  },
+  "scripts": {
+    "test": "node --import ./test-hooks/register.mjs --test \"src/**/*.test.ts\"",
+    "reset": "node --import ./test-hooks/register.mjs src/cli-reset.ts"
+  }
+}

@@ -15,6 +15,9 @@
     "dev:cardapio": "npm run dev --workspace apps/cardapio",
     "dev:cozinha": "npm run dev --workspace apps/cozinha",
     "dev:gestao": "npm run dev --workspace apps/gestao",
+    "dev:mock": "node scripts/dev-mock.mjs",
+    "mock:reset": "npm run reset --workspace packages/supabase-mock",
+    "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present"
   }

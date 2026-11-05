@@ -7,7 +7,9 @@
 // signIn: conta sem vínculo em staff_pizzaria não entra.
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+
+// supabase-js (~60 kB gz) só é baixado no clique, fora do carregamento da página.
+const criarClient = async () => (await import('@/lib/supabase/client')).createClient();
 
 export function GoogleButton() {
   const [pending, setPending] = useState(false);
@@ -16,7 +18,7 @@ export function GoogleButton() {
   const entrar = async () => {
     setPending(true);
     setErro(null);
-    const { error } = await createClient().auth.signInWithOAuth({
+    const { error } = await (await criarClient()).auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: new URL('/auth/callback', window.location.origin).toString() },
     });

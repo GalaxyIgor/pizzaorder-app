@@ -7,6 +7,8 @@
   --color-pomodoro-hover: #821414;
   --color-manjericao: #125430;
   --color-ouro: #F2A922;
+  /* ouro para TEXTO sobre fundo claro (o ouro puro tem contraste 2:1) */
+  --color-ouro-escuro: #8A5A00;
   --color-cacau: #6B4226;
   
   /* Planos de fundo e textos */
@@ -18,6 +20,10 @@
   /* Fontes (carregadas via next/font no layout) */
   --font-display: var(--font-playfair), Georgia, serif;
   --font-sans: var(--font-inter), sans-serif;
+}
+
+html {
+  color-scheme: light;
 }
 
 body {

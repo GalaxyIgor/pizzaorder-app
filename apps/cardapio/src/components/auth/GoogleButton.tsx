@@ -7,7 +7,9 @@
 // `perfis` e segue para `next` (ex.: /[slug]/checkout).
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+
+// supabase-js (~60 kB gz) só é baixado no clique, fora do carregamento da página.
+const criarClient = async () => (await import('@/lib/supabase/client')).createClient();
 
 interface Props {
   /** Destino interno pós-login (o callback valida; default: raiz). */
@@ -25,7 +27,7 @@ export function GoogleButton({ next, compact }: Props) {
     setErro(null);
     const callback = new URL('/auth/callback', window.location.origin);
     if (next) callback.searchParams.set('next', next);
-    const { error } = await createClient().auth.signInWithOAuth({
+    const { error } = await (await criarClient()).auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: callback.toString() },
     });

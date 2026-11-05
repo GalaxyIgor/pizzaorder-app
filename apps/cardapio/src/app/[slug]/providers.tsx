@@ -7,20 +7,28 @@
 // e das configs da pizzaria — não só a página do cardápio.
 
 import type { ReactNode } from 'react';
+import type { CardapioResponse } from '@/types/cardapio';
 import { CardapioProvider, useCardapio } from '@/contexts/CardapioContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { ProdutoDetalheProvider } from '@/contexts/ProdutoDetalheContext';
 
-export function TenantProviders({ slug, children }: { slug: string; children: ReactNode }) {
+export function TenantProviders({
+  slug,
+  dados,
+  children,
+}: {
+  slug: string;
+  dados: CardapioResponse;
+  children: ReactNode;
+}) {
   return (
-    <CardapioProvider slug={slug}>
+    <CardapioProvider dados={dados}>
       <CartComConfig slug={slug}>{children}</CartComConfig>
     </CardapioProvider>
   );
 }
 
-// Separado porque o CartProvider depende da config da pizzaria, que só existe
-// depois que o CardapioProvider carregou.
+// Separado porque o CartProvider lê a config da pizzaria via useCardapio().
 function CartComConfig({ slug, children }: { slug: string; children: ReactNode }) {
   const { pizzaria } = useCardapio();
 

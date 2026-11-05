@@ -39,39 +39,31 @@ export function HalfAndHalfSelector({
           return (
             <div
               key={side}
-              role="button"
-              tabIndex={0}
-              aria-pressed={isSelecting}
-              onClick={() => onChooseSide(side as 1 | 2)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  onChooseSide(side as 1 | 2);
-                }
-              }}
-              className={`relative cursor-pointer rounded-xl border-2 p-2.5 sm:p-3 transition-all focus:outline-none focus-visible:ring-2 ${
-                side === 1 ? 'focus-visible:ring-ouro/50' : 'focus-visible:ring-pomodoro/50'
-              } ${containerClass}`}
+              className={`relative rounded-xl border-2 transition-colors ${containerClass}`}
             >
-              <p className={`text-[10px] font-semibold uppercase tracking-[0.18em] truncate ${side === 1 ? 'text-ouro' : 'text-pomodoro'}`}>
-                Lado {side}
-                {status && <span className="text-creme-muted font-medium normal-case tracking-normal"> · {status}</span>}
-              </p>
-              <p className={`font-display text-sm font-semibold mt-0.5 truncate ${flavor ? 'text-carbono pr-5' : 'text-creme-muted'}`}>
-                {flavor?.nome ?? 'Toque e escolha abaixo'}
-              </p>
+              <button
+                type="button"
+                aria-pressed={isSelecting}
+                onClick={() => onChooseSide(side as 1 | 2)}
+                className={`w-full text-left cursor-pointer rounded-[10px] p-2.5 sm:p-3 ${flavor ? 'pr-11' : ''}`}
+              >
+                <span className={`block text-[10px] font-semibold uppercase tracking-[0.18em] truncate ${side === 1 ? 'text-ouro-escuro' : 'text-pomodoro'}`}>
+                  Lado {side}
+                  {status && <span className="text-creme-muted font-medium normal-case tracking-normal"> · {status}</span>}
+                </span>
+                <span className={`block font-display text-sm font-semibold mt-0.5 truncate ${flavor ? 'text-carbono' : 'text-creme-muted'}`}>
+                  {flavor?.nome ?? 'Toque e escolha abaixo'}
+                </span>
+              </button>
 
               {flavor && (
                 <button
                   type="button"
                   aria-label={`Remover sabor do lado ${side}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onResetSide(side as 1 | 2);
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold text-creme-muted hover:text-pomodoro hover:bg-pomodoro/10 transition-colors"
+                  onClick={() => onResetSide(side as 1 | 2)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold text-creme-muted hover:text-pomodoro hover:bg-pomodoro/10 transition-colors"
                 >
-                  ×
+                  <span aria-hidden="true">×</span>
                 </button>
               )}
             </div>
@@ -79,7 +71,7 @@ export function HalfAndHalfSelector({
         })}
       </div>
 
-      {erro && <p className="text-pomodoro text-sm mt-2 font-medium">{erro}</p>}
+      {erro && <p role="alert" className="text-pomodoro text-sm mt-2 font-medium">{erro}</p>}
     </div>
   );
 }

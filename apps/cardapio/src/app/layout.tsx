@@ -17,7 +17,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "PizzaOrder",
-  description: "Online pizza ordering system",
+  description: "Peça sua pizza online, direto da pizzaria.",
 };
 
 export default function RootLayout({

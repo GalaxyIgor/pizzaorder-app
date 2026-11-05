@@ -7,14 +7,19 @@
 // de categoria é o hero. Os destaques do banco continuam vivos como o chip
 // "a mais pedida" dentro do card de pizzas (ver CategoryButtons).
 
+import dynamic from 'next/dynamic';
 import { Header } from '@/components/layout/Header';
 import { AvisoPausado } from '@/components/layout/AvisoPausado';
 import { AvisoLoja } from '@/components/layout/AvisoLoja';
 import { InfoStrip } from '@/components/layout/InfoStrip';
-import { ProductListModal } from '@/components/cardapio/modals/ProductListModal';
 import { CartFooter } from '@/components/carrinho/CartFooter';
 import { CategoriaModal, useCardapioModal } from '@/hooks/useCardapioModal';
 import { CategoryButtons } from '@/components/cardapio/CategoryButtons';
+
+// Só montado quando aberto: o chunk do modal fica fora do JS inicial.
+const ProductListModal = dynamic(() =>
+  import('@/components/cardapio/modals/ProductListModal').then((m) => m.ProductListModal)
+);
 
 export default function CardapioPage() {
   return <CardapioConteudo />;
@@ -31,14 +36,16 @@ function CardapioConteudo() {
       <InfoStrip />
       <CategoryButtons onOpen={abrirModal} />
 
-      <ProductListModal
-        isOpen={modal.aberto}
-        category={modal.categoria as CategoriaModal}
-        title={modal.titulo}
-        products={modal.produtos}
-        combos={modal.combos}
-        onClose={fecharModal}
-      />
+      {modal.aberto && (
+        <ProductListModal
+          isOpen
+          category={modal.categoria as CategoriaModal}
+          title={modal.titulo}
+          products={modal.produtos}
+          combos={modal.combos}
+          onClose={fecharModal}
+        />
+      )}
 
       <CartFooter />
     </div>

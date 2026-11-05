@@ -3,42 +3,34 @@ import type { ComboMeiaMeia } from '@/types/product-list-modal';
 
 interface ComboOptionCardProps {
   combo: ComboMeiaMeia;
-  isSelected: boolean;
   onSelect: (combo: ComboMeiaMeia) => void;
   formatarPreco: (preco: number) => string;
 }
 
-export function ComboOptionCard({ combo, isSelected, onSelect, formatarPreco }: ComboOptionCardProps) {
+export function ComboOptionCard({ combo, onSelect, formatarPreco }: ComboOptionCardProps) {
   return (
     <button
       type="button"
       onClick={() => onSelect(combo)}
-      aria-pressed={isSelected}
-      className={`relative w-full flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition-all cursor-pointer ${
-        isSelected
-          ? 'border-ouro bg-ouro/5 ring-1 ring-ouro shadow-xs'
-          : 'border-borda-suave hover:border-ouro/60 hover:shadow-sm'
-      }`}
+      className="relative w-full flex flex-col gap-3 p-4 rounded-3xl border-2 text-left transition cursor-pointer border-borda-suave hover:border-ouro/60 hover:shadow-sm"
     >
       <div className="flex gap-4 items-center w-full min-w-0">
         <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-massa-bg">
           {combo.imagem_url ? (
             <Image
               src={combo.imagem_url}
-              alt={combo.nome}
+              alt=""
               fill
               sizes="96px"
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-linear-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
+            <div
+              aria-hidden="true"
+              className="w-full h-full bg-linear-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center"
+            >
               <span className="text-3xl">🍕🥤</span>
             </div>
-          )}
-          {isSelected && (
-            <span className="absolute right-1 top-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm bg-ouro">
-              Selecionado
-            </span>
           )}
         </div>
 
@@ -46,10 +38,18 @@ export function ComboOptionCard({ combo, isSelected, onSelect, formatarPreco }: 
           <h3 className="font-display font-semibold text-carbono text-lg leading-tight">
             {combo.nome}
           </h3>
-          <span className="font-display text-lg font-bold text-pomodoro">
+          <span className="font-display text-lg font-bold text-pomodoro tabular-nums">
             {formatarPreco(combo.preco)}
           </span>
         </div>
+
+        {/* Atalho visual: um toque já adiciona */}
+        <span
+          aria-hidden="true"
+          className="w-9 h-9 flex-shrink-0 rounded-full bg-pomodoro text-white text-xl font-bold flex items-center justify-center shadow-sm"
+        >
+          +
+        </span>
       </div>
 
       <div className="flex gap-2">

@@ -1,9 +1,10 @@
 // src/hooks/useAuth.ts
 //
 // Hook para verificar o estado de autenticação do usuário no client.
+// O supabase-js (~60 kB gz) é importado dentro do efeito: fica fora do JS
+// inicial do cardápio (o AccountMenu já mostra o placeholder enquanto carrega).
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
 export function useAuth() {
@@ -11,21 +12,30 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const supabase = createClient();
+    let cancelado = false;
+    let unsubscribe: (() => void) | undefined;
 
-    // Tenta obter a sessão atual
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user ?? null);
-      setLoading(false);
-    });
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      if (cancelado) return;
+      const supabase = createClient();
 
-    // Ouve mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      // Tenta obter a sessão atual
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (cancelado) return;
+        setUser(user ?? null);
+        setLoading(false);
+      });
+
+      // Ouve mudanças de autenticação
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      });
+      unsubscribe = () => subscription?.unsubscribe();
     });
 
     return () => {
-      subscription?.unsubscribe();
+      cancelado = true;
+      unsubscribe?.();
     };
   }, []);
 

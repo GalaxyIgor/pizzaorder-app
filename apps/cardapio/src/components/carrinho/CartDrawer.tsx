@@ -12,6 +12,7 @@ import { estaAberto } from '@pizzaorder/shared';
 import { useCart } from '@/contexts/CartContext';
 import { useCardapio } from '@/contexts/CardapioContext';
 import { formatarPreco } from '@/lib/cardapio';
+import { useDialog } from '@/hooks/useDialog';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -22,12 +23,21 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { items, totalItems, totalPrice, increment, decrement, remove, clear } = useCart();
   const { pizzaria } = useCardapio();
   const [expandido, setExpandido] = useState<string | null>(null);
+  // esvaziar é destrutivo: o 1º toque só pede confirmação
+  const [confirmandoLimpar, setConfirmandoLimpar] = useState(false);
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
 
-  const podeComprar =
-    !pizzaria.pedidos_pausados && estaAberto(pizzaria.horario_funcionamento);
+  const painelRef = useDialog<HTMLDivElement>(isOpen, onClose);
+
+  const lojaFechada = pizzaria.pedidos_pausados || !estaAberto(pizzaria.horario_funcionamento);
+  // pedido mínimo avisado já na sacola, não só na última etapa do checkout
+  const faltaParaMinimo =
+    pizzaria.pedido_minimo != null && totalPrice < pizzaria.pedido_minimo
+      ? pizzaria.pedido_minimo - totalPrice
+      : 0;
+  const podeComprar = !lojaFechada && faltaParaMinimo === 0;
 
   if (!isOpen) return null;
 
@@ -40,29 +50,42 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
 
       {/* painel */}
-      <div className="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[85dvh] flex flex-col shadow-xl">
+      <div
+        ref={painelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sacola-titulo"
+        className="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[85dvh] flex flex-col shadow-xl"
+      >
         <header className="flex items-center justify-between p-4 border-b border-borda-suave">
-          <h2 className="font-display text-xl font-bold text-carbono">
+          <h2 id="sacola-titulo" className="font-display text-xl font-bold text-carbono">
             Sua sacola{totalItems > 0 && <span className="text-creme-muted font-normal text-base"> ({totalItems})</span>}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar sacola"
-            className="text-creme-muted hover:text-carbono text-2xl leading-none w-8 h-8 flex items-center justify-center"
+            className="text-creme-muted hover:text-carbono hover:bg-massa-bg rounded-full text-2xl leading-none w-11 h-11 -mr-2 flex items-center justify-center transition-colors"
           >
-            ×
+            <span aria-hidden="true">×</span>
           </button>
         </header>
 
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-16 px-4 text-center">
-            <span className="text-4xl">🛒</span>
+            <span className="text-4xl" aria-hidden="true">🛒</span>
             <p className="text-creme-muted">Sua sacola está vazia.</p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="mt-2 bg-pomodoro hover:bg-pomodoro-hover text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+            >
+              Ver cardápio
+            </button>
           </div>
         ) : (
           <>
-            <ul className="flex-1 overflow-y-auto p-4 space-y-3">
+            <ul className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
               {items.map((item) => {
                 const aberto = expandido === item.id;
                 return (
@@ -77,15 +100,15 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       >
                         <div className="relative w-14 h-14 flex-shrink-0 rounded-md overflow-hidden bg-massa-bg">
                           {item.imagem_url ? (
-                            <Image src={item.imagem_url} alt={item.nome} fill sizes="56px" className="object-cover" />
+                            <Image src={item.imagem_url} alt="" fill sizes="56px" className="object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xl">🍕</div>
+                            <div aria-hidden="true" className="w-full h-full flex items-center justify-center text-xl">🍕</div>
                           )}
                         </div>
 
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-sm text-carbono truncate">{item.nome}</h3>
-                          <span className="text-sm font-bold text-manjericao">
+                          <span className="text-sm font-bold text-manjericao tabular-nums">
                             {formatarPreco(item.precoUnit * item.quantidade)}
                           </span>
                         </div>
@@ -98,21 +121,21 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         </span>
                       </button>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         <button
                           type="button"
                           onClick={() => decrement(item.id)}
-                          aria-label="Diminuir quantidade"
-                          className="w-7 h-7 rounded-full border border-borda-suave text-carbono font-bold flex items-center justify-center hover:bg-massa-bg"
+                          aria-label={`Diminuir quantidade de ${item.nome}`}
+                          className="w-9 h-9 rounded-full border border-borda-suave text-carbono font-bold flex items-center justify-center hover:bg-massa-bg"
                         >
-                          −
+                          <span aria-hidden="true">−</span>
                         </button>
-                        <span className="w-5 text-center text-sm font-semibold text-carbono">{item.quantidade}</span>
+                        <span className="w-5 text-center text-sm font-semibold text-carbono tabular-nums">{item.quantidade}</span>
                         <button
                           type="button"
                           onClick={() => increment(item.id)}
-                          aria-label="Aumentar quantidade"
-                          className="w-7 h-7 rounded-full bg-pomodoro text-white font-bold flex items-center justify-center hover:bg-pomodoro-hover"
+                          aria-label={`Aumentar quantidade de ${item.nome}`}
+                          className="w-9 h-9 rounded-full bg-pomodoro text-white font-bold flex items-center justify-center hover:bg-pomodoro-hover"
                         >
                           +
                         </button>
@@ -122,9 +145,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         type="button"
                         onClick={() => remove(item.id)}
                         aria-label={`Remover ${item.nome}`}
-                        className="text-creme-muted hover:text-pomodoro text-lg flex-shrink-0"
+                        className="w-9 h-9 flex items-center justify-center rounded-full text-creme-muted hover:text-pomodoro hover:bg-pomodoro/10 flex-shrink-0 transition-colors"
                       >
-                        🗑
+                        <IconeLixeira />
                       </button>
                     </div>
 
@@ -181,40 +204,96 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <footer className="border-t border-borda-suave p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4 space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-carbono font-medium">Total</span>
-                <span className="font-display text-xl font-bold text-carbono">
+                <span className="font-display text-xl font-bold text-carbono tabular-nums">
                   {formatarPreco(totalPrice)}
                 </span>
               </div>
+              {lojaFechada ? (
+                <p role="status" className="text-sm text-carbono bg-ouro/15 border border-ouro/40 rounded-lg p-3">
+                  {pizzaria.pedidos_pausados
+                    ? `${pizzaria.nome} não está aceitando pedidos agora. Sua sacola fica guardada — tente mais tarde.`
+                    : `${pizzaria.nome} está fechada agora. Sua sacola fica guardada para quando abrir.`}
+                </p>
+              ) : faltaParaMinimo > 0 ? (
+                <p role="status" className="text-sm text-carbono bg-ouro/15 border border-ouro/40 rounded-lg p-3">
+                  Faltam <strong className="tabular-nums">{formatarPreco(faltaParaMinimo)}</strong> para o
+                  pedido mínimo de {formatarPreco(pizzaria.pedido_minimo!)}.
+                </p>
+              ) : null}
               <button
                 type="button"
                 onClick={() => podeComprar && router.push(`/${slug}/checkout`)}
                 disabled={!podeComprar}
-                className={`w-full p-3 rounded-lg font-semibold transition-colors active:scale-[0.99] ${
+                className={`w-full p-3 rounded-lg font-semibold transition active:scale-[0.99] ${
                   podeComprar
                     ? 'bg-pomodoro hover:bg-pomodoro-hover text-white cursor-pointer'
-                    : 'bg-creme-muted/30 text-creme-muted cursor-not-allowed'
+                    : 'bg-creme-muted/30 text-carbono/70 cursor-not-allowed'
                 }`}
-                title={
-                  !podeComprar
-                    ? pizzaria.pedidos_pausados
-                      ? 'Pizzaria não está aceitando pedidos'
-                      : 'Pizzaria está fechada'
-                    : ''
-                }
               >
                 Finalizar pedido
               </button>
-              <button
-                type="button"
-                onClick={clear}
-                className="w-full text-creme-muted hover:text-pomodoro text-sm py-1"
-              >
-                Esvaziar sacola
-              </button>
+              {faltaParaMinimo > 0 && !lojaFechada && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full p-3 rounded-lg border-2 border-borda-suave text-carbono font-semibold text-sm hover:bg-massa-bg transition-colors"
+                >
+                  Adicionar mais itens
+                </button>
+              )}
+              {confirmandoLimpar ? (
+                <div className="flex items-center justify-center gap-3 text-sm py-1">
+                  <span className="text-carbono">Remover todos os itens?</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clear();
+                      setConfirmandoLimpar(false);
+                    }}
+                    className="font-semibold text-pomodoro hover:underline px-2 py-1"
+                  >
+                    Sim, esvaziar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmandoLimpar(false)}
+                    className="text-creme-muted hover:text-carbono px-2 py-1"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoLimpar(true)}
+                  className="w-full text-creme-muted hover:text-pomodoro text-sm py-2"
+                >
+                  Esvaziar sacola
+                </button>
+              )}
             </footer>
           </>
         )}
       </div>
     </div>
+  );
+}
+
+function IconeLixeira() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="w-[18px] h-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 6h18" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    </svg>
   );
 }

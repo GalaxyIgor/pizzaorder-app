@@ -29,7 +29,7 @@ export function ModalidadeStep({ pizzaria, value, onChange }: ModalidadeStepProp
 
   return (
     <div className="space-y-3">
-      <h2 className="font-display text-lg font-bold text-carbono">Como você quer receber?</h2>
+      <h2 tabIndex={-1} className="font-display text-lg font-bold text-carbono outline-none">Como você quer receber?</h2>
 
       {/* Empilhados no celular; lado a lado (cards verticais) quando há largura */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

@@ -118,9 +118,10 @@ export function CategoryButtons({ onOpen }: CategoryButtonsProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         {cards.filter((card) => !card.oculto).map((card) => (
           <button
+            type="button"
             key={card.chave}
             onClick={() => onOpen(card.chave)}
-            className={`group relative overflow-hidden flex items-center gap-4 text-left rounded-2xl p-4 md:p-5 shadow-lg hover:shadow-2xl transition-all duration-300 motion-safe:hover:-translate-y-1.5 motion-safe:hover:scale-[1.02] active:scale-[0.98] ${card.classes}`}
+            className={`group relative overflow-hidden flex items-center gap-4 text-left rounded-2xl p-4 md:p-5 shadow-lg hover:shadow-2xl transition duration-300 motion-safe:hover:-translate-y-1.5 motion-safe:hover:scale-[1.02] active:scale-[0.98] ${card.classes}`}
           >
             <div className="flex-1 min-w-0">
               <h3 className="font-display font-bold text-lg">{card.titulo}</h3>

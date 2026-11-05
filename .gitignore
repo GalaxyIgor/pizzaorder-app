@@ -13,6 +13,9 @@ node_modules/
 # testing
 coverage/
 
+# banco local do modo mock (npm run dev:mock)
+.mock-db/
+
 # next.js
 .next/
 out/

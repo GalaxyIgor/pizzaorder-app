@@ -18,10 +18,10 @@ export function Header() {
     <header className="py-6 border-b border-borda-suave flex items-center gap-3">
       {pizzaria.logo_url && (
         <div className="relative w-12 h-12 flex-shrink-0 rounded-full overflow-hidden">
-          <Image src={pizzaria.logo_url} alt={pizzaria.nome} fill sizes="48px" className="object-cover" />
+          <Image src={pizzaria.logo_url} alt="" fill sizes="48px" className="object-cover" />
         </div>
       )}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <h1
           className="font-display text-2xl sm:text-3xl font-bold"
           style={{ color: pizzaria.cor_primaria }}
@@ -32,7 +32,7 @@ export function Header() {
           <p className="text-sm text-creme-muted mt-0.5">{pizzaria.descricao}</p>
         )}
         <p className="text-sm text-creme-muted mt-1">
-          <span className={`font-bold mr-1 ${statusAtual.aberto ? 'text-manjericao' : 'text-pomodoro'}`}>
+          <span aria-hidden="true" className={`font-bold mr-1 ${statusAtual.aberto ? 'text-manjericao' : 'text-pomodoro'}`}>
             ●
           </span>
           {statusAtual.aberto

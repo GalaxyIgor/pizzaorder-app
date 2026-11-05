@@ -44,7 +44,7 @@ export function RevisaoStep({
 }: RevisaoStepProps) {
   return (
     <div className="space-y-4">
-      <h2 className="font-display text-lg font-bold text-carbono">Revise seu pedido</h2>
+      <h2 tabIndex={-1} className="font-display text-lg font-bold text-carbono outline-none">Revise seu pedido</h2>
 
       {/* Itens */}
       <ul className="space-y-2">
@@ -97,10 +97,11 @@ export function RevisaoStep({
         </label>
         <textarea
           id="observacao"
+          name="observacao"
           rows={2}
           value={observacao}
           onChange={(e) => onObservacaoChange(e.target.value)}
-          placeholder="Ex.: tirar a cebola, campainha quebrada..."
+          placeholder="Ex.: tirar a cebola, campainha quebrada…"
           className="w-full border border-borda-suave rounded-lg p-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pomodoro/40 resize-none"
         />
       </div>
@@ -125,7 +126,7 @@ export function RevisaoStep({
         )}
         <div className="flex justify-between font-bold text-carbono pt-1.5 border-t border-borda-suave">
           <span>Total</span>
-          <span className="font-display text-lg">{formatarPreco(total)}</span>
+          <span className="font-display text-lg tabular-nums">{formatarPreco(total)}</span>
         </div>
       </div>
     </div>

@@ -2,10 +2,11 @@
 
 // src/contexts/CardapioContext.tsx
 //
-// Busca o cardápio real (GET /api/cardapio/[slug]) uma vez e disponibiliza
-// pizzaria/categorias/produtos/destaques/gruposAdicionais/combos pra árvore inteira.
+// Disponibiliza pizzaria/categorias/produtos/destaques/gruposAdicionais/combos
+// pra árvore inteira. Os dados chegam prontos do layout do [slug], buscados no
+// servidor (lib/cardapio-server.ts) — nada de fetch no browser.
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import type { CardapioResponse } from '@/types/cardapio';
 
 interface CardapioContextValue extends CardapioResponse {
@@ -15,52 +16,16 @@ interface CardapioContextValue extends CardapioResponse {
 
 const CardapioContext = createContext<CardapioContextValue | null>(null);
 
-export function CardapioProvider({ slug, children }: { slug: string; children: ReactNode }) {
-  const [dados, setDados] = useState<CardapioResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+export function CardapioProvider({
+  dados,
+  children,
+}: {
+  dados: CardapioResponse;
+  children: ReactNode;
+}) {
+  const value = useMemo(() => ({ ...dados, loading: false, error: null }), [dados]);
 
-  useEffect(() => {
-    let cancelado = false;
-
-    fetch(`/api/cardapio/${slug}`)
-      .then(async (res) => {
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error ?? 'Erro ao carregar o cardápio');
-        return json as CardapioResponse;
-      })
-      .then((json) => {
-        if (!cancelado) setDados(json);
-      })
-      .catch((err: Error) => {
-        if (!cancelado) setError(err.message);
-      });
-
-    return () => {
-      cancelado = true;
-    };
-  }, [slug]);
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 text-center">
-        <p className="text-creme-muted">Cardápio não encontrado.</p>
-      </div>
-    );
-  }
-
-  if (!dados) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 text-center">
-        <p className="text-creme-muted">Carregando cardápio...</p>
-      </div>
-    );
-  }
-
-  return (
-    <CardapioContext.Provider value={{ ...dados, loading: false, error: null }}>
-      {children}
-    </CardapioContext.Provider>
-  );
+  return <CardapioContext.Provider value={value}>{children}</CardapioContext.Provider>;
 }
 
 export function useCardapio(): CardapioContextValue {

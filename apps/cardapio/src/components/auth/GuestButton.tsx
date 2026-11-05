@@ -10,7 +10,9 @@
 // + rate limit do criarPedido.
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+
+// supabase-js (~60 kB gz) só é baixado no clique, fora do carregamento da página.
+const criarClient = async () => (await import('@/lib/supabase/client')).createClient();
 
 interface Props {
   /** Destino interno pós-sessão (ex.: /[slug]/checkout; default: raiz da loja). */
@@ -24,7 +26,7 @@ export function GuestButton({ next }: Props) {
   const continuar = async () => {
     setPending(true);
     setErro(null);
-    const { error } = await createClient().auth.signInAnonymously();
+    const { error } = await (await criarClient()).auth.signInAnonymously();
     if (error) {
       setErro('Não foi possível continuar sem cadastro. Tente de novo ou entre com o Google.');
       setPending(false);

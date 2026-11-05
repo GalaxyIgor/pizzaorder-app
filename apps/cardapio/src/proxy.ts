@@ -8,13 +8,20 @@
 
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { isSupabaseMock } from '@pizzaorder/supabase-mock/flag';
+import { createMockServerClient } from '@pizzaorder/supabase-mock/server';
 
 const ROTA_PROTEGIDA = /^\/([^/]+)\/(conta|checkout)(\/|$)/;
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  const supabase = createServerClient(
+  // Modo mock: mesma API, sessão em cookie local (ver packages/supabase-mock)
+  const criar = isSupabaseMock()
+    ? (createMockServerClient as unknown as typeof createServerClient)
+    : createServerClient;
+
+  const supabase = criar(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

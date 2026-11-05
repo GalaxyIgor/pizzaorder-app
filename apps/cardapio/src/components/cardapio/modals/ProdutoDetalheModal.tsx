@@ -12,6 +12,7 @@ import type { GrupoAdicional, Produto } from '@/types/cardapio';
 import type { CartItemAdicional } from '@/types/carrinho';
 import { formatarPreco, precoOpcaoAdicional } from '@/lib/cardapio';
 import { useCart } from '@/contexts/CartContext';
+import { useDialog } from '@/hooks/useDialog';
 
 interface ProdutoDetalheModalProps {
   produto: Produto;
@@ -36,6 +37,7 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
   });
   const [quantidade, setQuantidade] = useState(1);
   const [erro, setErro] = useState<string | null>(null);
+  const painelRef = useDialog<HTMLDivElement>(true, onClose);
 
   const variacao = variacoes.find((v) => v.id === variacaoId) ?? variacoes[0];
   const tamanho = variacao?.tamanho ?? null;
@@ -74,7 +76,7 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
         return { ...prev, [grupo.id]: atual.filter((id) => id !== opcaoId) };
       }
       if (grupo.max_selecoes != null && atual.length >= grupo.max_selecoes) {
-        setErro(`"${grupo.nome}": máximo de ${grupo.max_selecoes} opção(ões).`);
+        setErro(`Em "${grupo.nome}" dá para escolher até ${plural(grupo.max_selecoes)}.`);
         return prev;
       }
       return { ...prev, [grupo.id]: [...atual, opcaoId] };
@@ -86,11 +88,11 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
     for (const g of grupos) {
       const qtd = (selecoes[g.id] ?? []).length;
       if ((g.obrigatorio || g.min_selecoes > 0) && qtd < g.min_selecoes) {
-        setErro(`Escolha ${g.min_selecoes} opção(ões) em "${g.nome}".`);
+        setErro(`Escolha ${plural(g.min_selecoes)} em "${g.nome}".`);
         return;
       }
       if (g.max_selecoes != null && qtd > g.max_selecoes) {
-        setErro(`"${g.nome}": máximo de ${g.max_selecoes} opção(ões).`);
+        setErro(`Em "${g.nome}" dá para escolher até ${plural(g.max_selecoes)}.`);
         return;
       }
     }
@@ -102,21 +104,29 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
     onClose();
   };
 
+  const plural = (n: number) => `${n} ${n === 1 ? 'opção' : 'opções'}`;
   const rotuloPreco = (preco: number) => (preco > 0 ? `+ ${formatarPreco(preco)}` : 'Grátis');
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-lg max-w-lg w-full max-h-[92dvh] sm:max-h-[85dvh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
+      <div
+        ref={painelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="produto-detalhe-titulo"
+        className="relative bg-white rounded-t-2xl sm:rounded-lg max-w-lg w-full max-h-[92dvh] sm:max-h-[85dvh] overflow-y-auto overscroll-contain"
+      >
         {/* Header */}
         <div className="sticky top-0 z-20 bg-white border-b border-borda-suave p-4 flex justify-between items-center">
-          <h2 className="font-display text-xl font-bold text-carbono">{produto.nome}</h2>
+          <h2 id="produto-detalhe-titulo" className="font-display text-xl font-bold text-carbono">{produto.nome}</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="text-2xl text-creme-muted hover:text-carbono transition-colors"
+            className="w-11 h-11 -mr-2 flex-shrink-0 flex items-center justify-center rounded-full text-2xl text-creme-muted hover:text-carbono hover:bg-massa-bg transition-colors"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -125,9 +135,9 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
           <div className="flex gap-4">
             <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-massa-bg">
               {produto.imagem_url ? (
-                <Image src={produto.imagem_url} alt={produto.nome} fill sizes="96px" className="object-cover" />
+                <Image src={produto.imagem_url} alt="" fill sizes="96px" className="object-cover" />
               ) : (
-                <div className="w-full h-full bg-linear-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
+                <div aria-hidden="true" className="w-full h-full bg-linear-to-br from-ouro/20 to-pomodoro/20 flex items-center justify-center">
                   <span className="text-3xl">🍕</span>
                 </div>
               )}
@@ -148,23 +158,25 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
                     <button
                       key={v.id}
                       type="button"
+                      aria-pressed={selecionado}
                       onClick={() => {
                         setVariacaoId(v.id);
                         setErro(null);
                       }}
-                      className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                      className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg border-2 transition cursor-pointer ${
                         selecionado ? 'border-ouro bg-ouro/5' : 'border-borda-suave hover:border-ouro/60'
                       }`}
                     >
                       <span className="flex items-center gap-2 text-carbono font-medium">
                         <span
+                          aria-hidden="true"
                           className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
                             selecionado ? 'border-ouro bg-ouro' : 'border-borda-suave'
                           }`}
                         />
                         {v.tamanho ?? 'Único'}
                       </span>
-                      <span className="font-display font-bold text-pomodoro">{formatarPreco(v.preco)}</span>
+                      <span className="font-display font-bold text-pomodoro tabular-nums">{formatarPreco(v.preco)}</span>
                     </button>
                   );
                 })}
@@ -198,12 +210,13 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
                         type="button"
                         onClick={() => toggleOpcao(grupo, opcao.id)}
                         aria-pressed={selecionado}
-                        className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                        className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg border-2 transition cursor-pointer ${
                           selecionado ? 'border-ouro bg-ouro/5' : 'border-borda-suave hover:border-ouro/60'
                         }`}
                       >
                         <span className="flex items-center gap-2 text-carbono font-medium">
                           <span
+                            aria-hidden="true"
                             className={`w-4 h-4 flex-shrink-0 border-2 flex items-center justify-center text-[10px] text-white ${
                               grupo.tipo === 'unica' ? 'rounded-full' : 'rounded'
                             } ${selecionado ? 'border-ouro bg-ouro' : 'border-borda-suave'}`}
@@ -231,16 +244,16 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
                 type="button"
                 onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
                 aria-label="Diminuir quantidade"
-                className="w-8 h-8 rounded-full border border-borda-suave text-carbono font-bold flex items-center justify-center hover:bg-massa-bg"
+                className="w-10 h-10 rounded-full border border-borda-suave text-lg text-carbono font-bold flex items-center justify-center hover:bg-massa-bg"
               >
-                −
+                <span aria-hidden="true">−</span>
               </button>
-              <span className="w-6 text-center font-semibold text-carbono">{quantidade}</span>
+              <span aria-live="polite" className="w-6 text-center font-semibold text-carbono tabular-nums">{quantidade}</span>
               <button
                 type="button"
                 onClick={() => setQuantidade((q) => q + 1)}
                 aria-label="Aumentar quantidade"
-                className="w-8 h-8 rounded-full bg-pomodoro text-white font-bold flex items-center justify-center hover:bg-pomodoro-hover"
+                className="w-10 h-10 rounded-full bg-pomodoro text-lg text-white font-bold flex items-center justify-center hover:bg-pomodoro-hover"
               >
                 +
               </button>
@@ -250,14 +263,14 @@ export function ProdutoDetalheModal({ produto, grupos, onClose }: ProdutoDetalhe
 
         {/* Footer */}
         <div className="sticky bottom-0 z-20 bg-white border-t border-borda-suave p-4 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-2">
-          {erro && <p className="text-pomodoro text-sm text-center">{erro}</p>}
+          {erro && <p role="alert" className="text-pomodoro text-sm text-center">{erro}</p>}
           <button
             type="button"
             onClick={handleAdicionar}
             className="w-full bg-pomodoro hover:bg-pomodoro-hover text-white font-semibold p-3 rounded-lg flex justify-between items-center transition-colors active:scale-[0.99]"
           >
-            <span>Adicionar ao carrinho</span>
-            <span>{formatarPreco(total)}</span>
+            <span>Adicionar à sacola</span>
+            <span className="tabular-nums">{formatarPreco(total)}</span>
           </button>
         </div>
       </div>
